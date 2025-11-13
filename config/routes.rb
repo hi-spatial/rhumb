@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resource :squad, only: [ :show, :update ]
   get "home", to: "pages#home"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
