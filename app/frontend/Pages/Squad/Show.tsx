@@ -51,7 +51,7 @@ export default function Show({ squad, available_players }: SquadShowProps) {
               <Card>
                 <CardContent className="pt-6">
                   {/* Football Pitch */}
-                  <div className="bg-gradient-to-b from-green-600 to-green-500 rounded-lg p-8">
+                  <div className="bg-linear-to-b from-green-600 to-green-500 rounded-lg p-8">
                     <div className="grid grid-cols-4 gap-4">
                       {squad.players.slice(0, 11).map((player) => (
                         <div key={player.id} className="flex flex-col items-center">
