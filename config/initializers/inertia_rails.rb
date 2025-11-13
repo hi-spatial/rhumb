@@ -5,4 +5,7 @@ InertiaRails.configure do |config|
 
   # Set default layout
   config.layout = "application"
+
+  # Always include errors hash in responses (required for InertiaRails 4.0)
+  config.always_include_errors_hash = true
 end

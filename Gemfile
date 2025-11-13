@@ -44,6 +44,9 @@ gem "htmlbeautifier", "~> 1.4", ">= 1.4.3"
 # inertia
 gem "inertia_rails", "~> 3.12", ">= 3.12.1"
 
+# logging
+gem "lograge", "~> 0.14.0"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
