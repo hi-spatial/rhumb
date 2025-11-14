@@ -10,7 +10,7 @@ export default function Layout({ children }: LayoutProps) {
   const { auth, flash } = usePage<PageProps>().props
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4">
@@ -90,12 +90,12 @@ export default function Layout({ children }: LayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 grow">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 mt-16">
+      <footer className="bg-gray-800 text-white py-8 mt-auto">
         <div className="container mx-auto px-4 text-center">
           <p>&copy; 2024 Anvil. Built with Rails + Inertia + React + TypeScript</p>
         </div>

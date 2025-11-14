@@ -18,7 +18,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
       if resource.active_for_authentication?
         set_flash_message! :notice, :signed_up
         sign_up(resource_name, resource)
-        redirect_to after_sign_up_path_for(resource), notice: I18n.t('devise.registrations.signed_up')
+        redirect_to after_sign_up_path_for(resource), notice: I18n.t("devise.registrations.signed_up")
       else
         set_flash_message! :notice, :"signed_up_but_#{resource.inactive_message}"
         expire_data_after_sign_in!
@@ -27,7 +27,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
     else
       clean_up_passwords resource
       set_minimum_password_length
-      errors_hash = resource.errors.messages.to_h { |key, messages| [key, messages.first] }
+      errors_hash = resource.errors.messages.to_h { |key, messages| [ key, messages.first ] }
       render inertia: "Auth/Register", props: {
         errors: errors_hash
       }, status: :unprocessable_entity
@@ -37,11 +37,15 @@ class Users::RegistrationsController < Devise::RegistrationsController
   private
 
   def sign_up_params
-    params.require(:user).permit(:name, :email, :password, :password_confirmation)
+    # Handle both Inertia form data (direct params) and traditional Devise format (nested under :user)
+    if params[:user].present?
+      params.require(:user).permit(:name, :email, :password, :password_confirmation)
+    else
+      params.permit(:name, :email, :password, :password_confirmation)
+    end
   end
 
   def after_sign_up_path_for(_resource)
     root_path
   end
 end
-

@@ -1,26 +1,43 @@
 import React, { FormEvent } from 'react'
-import { Link, useForm } from '@inertiajs/react'
+import { Link, router } from '@inertiajs/react'
 import { PageProps } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
-interface RegisterProps extends PageProps {
-  errors?: Record<string, string>
-}
+interface RegisterProps extends PageProps {}
 
 export default function Register({ errors: pageErrors, locale }: RegisterProps) {
-  const { data, setData, post, processing, errors } = useForm({
+  const [formData, setFormData] = React.useState({
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
   })
+  const [processing, setProcessing] = React.useState(false)
+  const [localErrors, setLocalErrors] = React.useState<Record<string, string>>({})
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    post('/users')
+    setProcessing(true)
+    setLocalErrors({})
+    
+    router.post('/users', {
+      user: formData
+    }, {
+      onError: (errors) => {
+        setLocalErrors(errors as Record<string, string>)
+        setProcessing(false)
+      },
+      onFinish: () => {
+        setProcessing(false)
+      }
+    })
+  }
+
+  const setData = (key: keyof typeof formData, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }))
   }
 
   const t = (key: string) => {
@@ -52,7 +69,7 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
     return translations[lang]?.[key] || key
   }
 
-  const formErrors = errors || pageErrors || {}
+  const formErrors = localErrors || pageErrors || {}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -69,7 +86,7 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
                 id="name"
                 type="text"
                 placeholder="John Doe"
-                value={data.name}
+                value={formData.name}
                 onChange={(e) => setData('name', e.target.value)}
                 required
               />
@@ -84,7 +101,7 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={data.email}
+                value={formData.email}
                 onChange={(e) => setData('email', e.target.value)}
                 required
               />
@@ -98,7 +115,7 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
               <Input
                 id="password"
                 type="password"
-                value={data.password}
+                value={formData.password}
                 onChange={(e) => setData('password', e.target.value)}
                 required
               />
@@ -112,7 +129,7 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
               <Input
                 id="password_confirmation"
                 type="password"
-                value={data.password_confirmation}
+                value={formData.password_confirmation}
                 onChange={(e) => setData('password_confirmation', e.target.value)}
                 required
               />
