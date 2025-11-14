@@ -1,0 +1,138 @@
+# Overcommit configuration file
+# See https://github.com/sds/overcommit for documentation
+
+# Pre-commit hooks run before a commit is created
+PreCommit:
+  # Ruby code style checking
+  RuboCop:
+    enabled: true
+    on_warn: fail # Fail commit if RuboCop finds issues
+    problem_on_unmodified_line: ignore
+    include: '**/*.rb'
+    exclude:
+      - 'db/schema.rb'
+      - 'db/migrate/**/*'
+      - 'bin/**/*'
+      - 'config/initializers/rubocop.rb'
+      - 'vendor/**/*'
+      - 'node_modules/**/*'
+
+  # Check for trailing whitespace (auto-fixes)
+  TrailingWhitespace:
+    enabled: true
+    exclude:
+      - '**/*.md'
+      - 'db/schema.rb'
+      - 'Gemfile.lock'
+      - '.yarn/releases/**/*'
+      - '.github/workflows/**/*'
+      - 'docker-compose*.yml'
+
+  # Check for hard tabs
+  HardTabs:
+    enabled: true
+
+  # YAML file linting (disabled - requires Python yamllint)
+  # YamlLint:
+  #   enabled: true
+  #   include: '**/*.yml'
+  #   exclude:
+  #     - 'vendor/**/*'
+
+  # Ensure author email is set
+  AuthorEmail:
+    enabled: true
+
+  # Ensure author name is set
+  AuthorName:
+    enabled: true
+
+  # JavaScript/TypeScript linting
+  Execute:
+    name: 'ESLint'
+    enabled: true
+    required: true
+    command: ['yarn', 'lint']
+    include: '**/*.{js,ts,tsx,jsx}'
+    exclude:
+      - 'node_modules/**/*'
+      - 'vendor/**/*'
+      - '**/*.min.js'
+
+  # Prevent committing to main/master branches
+  PreventNonAsyncFixup:
+    enabled: true
+
+  # Prevent committing large files
+  FileSize:
+    enabled: true
+    size_limit_bytes: 1048576 # 1MB
+    exclude:
+      - '*.log'
+      - '*.sql'
+      - '*.dump'
+
+  # Prevent committing secrets
+  DetectPrivateKey:
+    enabled: true
+
+# Pre-push hooks run before pushing to remote
+PrePush:
+  # Run tests before pushing
+  # Uncomment if you want to run tests on every push
+  # RSpec:
+  #   enabled: true
+  #   command: ['bundle', 'exec', 'rspec']
+
+# Commit-msg hooks run on commit message
+CommitMsg:
+  CapitalizedSubject:
+    enabled: true
+    words:
+      - 'wip'
+      - 'fixup'
+      - 'squash'
+
+  EmptyMessage:
+    enabled: true
+
+  HardTabs:
+    enabled: true
+
+  RussianNovel:
+    enabled: true
+
+  SpellCheck:
+    enabled: false # Disable if you don't want spell checking
+
+  TextWidth:
+    enabled: true
+    max_subject_width: 72
+    max_body_width: 80
+
+# Post-commit hooks run after a commit is created
+PostCommit:
+  # Optional: Add notifications or other post-commit actions
+  # PostCheckout:
+  #   enabled: true
+
+# Post-checkout hooks run after checking out a branch
+PostCheckout:
+  BundleInstall:
+    enabled: true
+    problem_on_unmodified_line: ignore
+
+  IndexTags:
+    enabled: false # Disable if you don't use ctags
+
+# Post-merge hooks run after a merge
+PostMerge:
+  BundleInstall:
+    enabled: true
+
+# Post-rewrite hooks run after rewriting commit history
+PostRewrite:
+  BundleInstall:
+    enabled: true
+    problem_on_unmodified_line: ignore
+

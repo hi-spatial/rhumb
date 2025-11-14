@@ -18,37 +18,37 @@ export default function Layout({ children }: LayoutProps) {
             <Link href="/" className="text-2xl font-bold text-blue-600">
               Anvil
             </Link>
-            
+
             {auth.user && (
               <div className="flex gap-6">
-                <Link 
-                  href="/dashboard" 
+                <Link
+                  href="/dashboard"
                   className="text-gray-700 hover:text-blue-600 transition"
                 >
                   Dashboard
                 </Link>
               </div>
             )}
-            
+
             <div>
               {auth.user ? (
                 <div className="flex items-center gap-4">
-                  <Link 
+                  <Link
                     href="/dashboard"
                     className="text-gray-700 hover:text-blue-600 transition"
                   >
                     {auth.user.name}
                   </Link>
                   {auth.user.role === 'admin' && (
-                    <Link 
+                    <Link
                       href="/avo"
                       className="text-gray-700 hover:text-blue-600 transition"
                     >
                       Admin
                     </Link>
                   )}
-                  <Link 
-                    href="/users/sign_out" 
+                  <Link
+                    href="/users/sign_out"
                     method="delete"
                     as="button"
                     className="text-red-600 hover:text-red-700"
@@ -58,14 +58,14 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               ) : (
                 <div className="flex items-center gap-4">
-                  <Link 
-                    href="/users/sign_in" 
+                  <Link
+                    href="/users/sign_in"
                     className="text-gray-700 hover:text-blue-600 transition"
                   >
                     Login
                   </Link>
-                  <Link 
-                    href="/users/sign_up" 
+                  <Link
+                    href="/users/sign_up"
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
                   >
                     Register
