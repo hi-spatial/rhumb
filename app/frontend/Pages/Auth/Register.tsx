@@ -1,43 +1,53 @@
-import React, { FormEvent } from 'react'
 import { Link, router } from '@inertiajs/react'
+import { useForm, type SubmitHandler } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { PageProps } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { registerSchema, type RegisterFormData } from '@/lib/validations'
 
 interface RegisterProps extends PageProps {}
 
-export default function Register({ errors: pageErrors, locale }: RegisterProps) {
-  const [formData, setFormData] = React.useState({
-    name: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
+export default function Register({ errors: pageErrors = {}, locale }: RegisterProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      password_confirmation: '',
+    },
   })
-  const [processing, setProcessing] = React.useState(false)
-  const [localErrors, setLocalErrors] = React.useState<Record<string, string>>({})
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    setProcessing(true)
-    setLocalErrors({})
-    
-    router.post('/users', {
-      user: formData
-    }, {
-      onError: (errors) => {
-        setLocalErrors(errors as Record<string, string>)
-        setProcessing(false)
+  const onSubmit: SubmitHandler<RegisterFormData> = (data) => {
+    router.post(
+      '/users',
+      {
+        user: {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          password_confirmation: data.password_confirmation,
+        },
       },
-      onFinish: () => {
-        setProcessing(false)
+      {
+        onError: (errors) => {
+          Object.keys(errors).forEach((key) => {
+            setError(key as keyof RegisterFormData, {
+              type: 'server',
+              message: errors[key] as string,
+            })
+          })
+        },
       }
-    })
-  }
-
-  const setData = (key: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [key]: value }))
+    )
   }
 
   const t = (key: string) => {
@@ -69,7 +79,16 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
     return translations[lang]?.[key] || key
   }
 
-  const formErrors = localErrors || pageErrors || {}
+  // Merge server errors with form errors
+  const getErrorMessage = (field: keyof RegisterFormData): string | undefined => {
+    if (errors[field]?.message) {
+      return errors[field]?.message as string
+    }
+    if (pageErrors[field]) {
+      return pageErrors[field] as string
+    }
+    return undefined
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -79,19 +98,19 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
           <CardDescription className="text-center">{t('register_description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">{t('name')}</Label>
               <Input
                 id="name"
                 type="text"
                 placeholder="John Doe"
-                value={formData.name}
-                onChange={(e) => setData('name', e.target.value)}
-                required
+                {...register('name')}
               />
-              {formErrors.name && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.name}</p>
+              {getErrorMessage('name') && (
+                <p className="text-sm text-red-600 mt-1">
+                  {getErrorMessage('name')}
+                </p>
               )}
             </div>
 
@@ -101,12 +120,12 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={formData.email}
-                onChange={(e) => setData('email', e.target.value)}
-                required
+                {...register('email')}
               />
-              {formErrors.email && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.email}</p>
+              {getErrorMessage('email') && (
+                <p className="text-sm text-red-600 mt-1">
+                  {getErrorMessage('email')}
+                </p>
               )}
             </div>
 
@@ -115,12 +134,12 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
               <Input
                 id="password"
                 type="password"
-                value={formData.password}
-                onChange={(e) => setData('password', e.target.value)}
-                required
+                {...register('password')}
               />
-              {formErrors.password && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.password}</p>
+              {getErrorMessage('password') && (
+                <p className="text-sm text-red-600 mt-1">
+                  {getErrorMessage('password')}
+                </p>
               )}
             </div>
 
@@ -129,17 +148,17 @@ export default function Register({ errors: pageErrors, locale }: RegisterProps) 
               <Input
                 id="password_confirmation"
                 type="password"
-                value={formData.password_confirmation}
-                onChange={(e) => setData('password_confirmation', e.target.value)}
-                required
+                {...register('password_confirmation')}
               />
-              {formErrors.password_confirmation && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.password_confirmation}</p>
+              {getErrorMessage('password_confirmation') && (
+                <p className="text-sm text-red-600 mt-1">
+                  {getErrorMessage('password_confirmation')}
+                </p>
               )}
             </div>
 
-            <Button type="submit" disabled={processing} className="w-full">
-              {processing ? 'Loading...' : t('sign_up')}
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? 'Loading...' : t('sign_up')}
             </Button>
           </form>
         </CardContent>

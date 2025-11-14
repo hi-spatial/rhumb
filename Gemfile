@@ -47,8 +47,15 @@ gem "inertia_rails", "~> 3.12", ">= 3.12.1"
 # authentication
 gem "devise", "~> 4.9"
 
+# authorization
+gem "pundit", "~> 2.3"
+
 # admin panel
 gem "avo", "~> 3.0"
+
+# error tracking
+gem "sentry-ruby", "~> 5.0"
+gem "sentry-rails", "~> 5.0"
 
 # logging
 gem "lograge", "~> 0.14.0"

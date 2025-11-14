@@ -1,8 +1,14 @@
 # app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
   include InertiaRails::Controller
+  include Pundit::Authorization
+
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :set_sentry_context
   around_action :switch_locale
+
+  # Pundit authorization
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   # Share data to all Inertia pages
   inertia_share do
@@ -45,5 +51,22 @@ class ApplicationController < ActionController::Base
     locale = :en unless I18n.available_locales.include?(locale.to_sym)
     I18n.with_locale(locale, &action)
     session[:locale] = locale
+  end
+
+  def user_not_authorized
+    flash[:alert] = I18n.t('pundit.not_authorized', default: 'You are not authorized to perform this action.')
+    redirect_to(request.referrer || root_path)
+  end
+
+  def set_sentry_context
+    return unless defined?(Sentry)
+
+    if user_signed_in?
+      Sentry.set_user(
+        id: current_user&.id,
+        email: current_user&.email,
+        username: current_user&.name
+      )
+    end
   end
 end

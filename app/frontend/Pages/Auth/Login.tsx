@@ -1,25 +1,51 @@
-import React, { FormEvent } from 'react'
-import { Link, useForm } from '@inertiajs/react'
+import { Link, router } from '@inertiajs/react'
+import { useForm, type SubmitHandler } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { PageProps } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { loginSchema, type LoginFormData } from '@/lib/validations'
 
-interface LoginProps extends PageProps {
-  errors?: Record<string, string>
-}
+interface LoginProps extends PageProps {}
 
-export default function Login({ errors: pageErrors, locale }: LoginProps) {
-  const { data, setData, post, processing, errors } = useForm({
-    email: '',
-    password: '',
-    remember_me: false,
+export default function Login({ errors: pageErrors = {}, locale }: LoginProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      remember_me: false,
+    },
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    post('/users/sign_in')
+  const onSubmit: SubmitHandler<LoginFormData> = (data) => {
+    router.post(
+      '/users/sign_in',
+      {
+        user: {
+          email: data.email,
+          password: data.password,
+          remember_me: data.remember_me,
+        },
+      },
+      {
+        onError: (errors) => {
+          Object.keys(errors).forEach((key) => {
+            setError(key as keyof LoginFormData, {
+              type: 'server',
+              message: errors[key] as string,
+            })
+          })
+        },
+      }
+    )
   }
 
   const t = (key: string) => {
@@ -49,7 +75,16 @@ export default function Login({ errors: pageErrors, locale }: LoginProps) {
     return translations[lang]?.[key] || key
   }
 
-  const formErrors = errors || pageErrors || {}
+  // Merge server errors with form errors
+  const getErrorMessage = (field: keyof LoginFormData): string | undefined => {
+    if (errors[field]?.message) {
+      return errors[field]?.message as string
+    }
+    if (pageErrors[field]) {
+      return pageErrors[field] as string
+    }
+    return undefined
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -59,19 +94,19 @@ export default function Login({ errors: pageErrors, locale }: LoginProps) {
           <CardDescription className="text-center">{t('login_description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={data.email}
-                onChange={(e) => setData('email', e.target.value)}
-                required
+                {...register('email')}
               />
-              {formErrors.email && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.email}</p>
+              {getErrorMessage('email') && (
+                <p className="text-sm text-red-600 mt-1">
+                  {getErrorMessage('email')}
+                </p>
               )}
             </div>
 
@@ -82,12 +117,12 @@ export default function Login({ errors: pageErrors, locale }: LoginProps) {
               <Input
                 id="password"
                 type="password"
-                value={data.password}
-                onChange={(e) => setData('password', e.target.value)}
-                required
+                {...register('password')}
               />
-              {formErrors.password && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.password}</p>
+              {getErrorMessage('password') && (
+                <p className="text-sm text-red-600 mt-1">
+                  {getErrorMessage('password')}
+                </p>
               )}
             </div>
 
@@ -95,8 +130,7 @@ export default function Login({ errors: pageErrors, locale }: LoginProps) {
               <input
                 id="remember_me"
                 type="checkbox"
-                checked={data.remember_me}
-                onChange={(e) => setData('remember_me', e.target.checked)}
+                {...register('remember_me')}
                 className="h-4 w-4 rounded border-gray-300"
               />
               <Label htmlFor="remember_me" className="text-sm font-normal cursor-pointer">
@@ -104,8 +138,8 @@ export default function Login({ errors: pageErrors, locale }: LoginProps) {
               </Label>
             </div>
 
-            <Button type="submit" disabled={processing} className="w-full">
-              {processing ? 'Loading...' : t('sign_in')}
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? 'Loading...' : t('sign_in')}
             </Button>
           </form>
         </CardContent>

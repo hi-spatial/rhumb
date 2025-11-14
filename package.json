@@ -26,6 +26,7 @@
     "vite-plugin-ruby": "^5.1.1"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@inertiajs/react": "^2.2.16",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -39,8 +40,10 @@
     "lucide-react": "^0.553.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.66.0",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.1.12"
   },
   "packageManager": "yarn@4.11.0"
 }

@@ -69,3 +69,7 @@ en:
     create: "Create"
     update: "Update"
     back: "Back"
+  
+  # Pundit
+  pundit:
+    not_authorized: "You are not authorized to perform this action."

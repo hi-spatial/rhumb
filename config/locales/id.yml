@@ -40,4 +40,8 @@ id:
     create: "Buat"
     update: "Perbarui"
     back: "Kembali"
+  
+  # Pundit
+  pundit:
+    not_authorized: "Anda tidak memiliki izin untuk melakukan tindakan ini."
 
