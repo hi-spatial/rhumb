@@ -23,6 +23,7 @@ module Api
     def create
       @analysis_session = current_user.analysis_sessions.build(analysis_session_params)
       authorize @analysis_session
+      @analysis_session.ai_provider ||= current_user.ai_provider
 
       if @analysis_session.save
         render json: {
@@ -62,16 +63,18 @@ module Api
     end
 
     def analysis_session_params
-      params.require(:analysis_session).permit(:analysis_type, area_of_interest: {}, metadata: {})
+      params.require(:analysis_session).permit(:analysis_type, :ai_provider, area_of_interest: {}, metadata: {}, provider_metadata: {})
     end
 
     def serialize_session(session)
       {
         id: session.id,
+        ai_provider: session.ai_provider,
         analysis_type: session.analysis_type,
         status: session.status,
         area_of_interest: session.area_of_interest,
         metadata: session.metadata,
+        provider_metadata: session.provider_metadata,
         created_at: session.created_at,
         updated_at: session.updated_at
       }

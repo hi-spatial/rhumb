@@ -39,6 +39,7 @@ A modern Rails application built with React, TypeScript, and Inertia.js.
 - ✅ Admin dashboard using Avo
 - ✅ Custom user dashboard
 - ✅ **Geospatial AI Analysis** - Interactive map-based analysis with AI chat
+- ✅ Multi-provider AI (OpenAI, Google Gemini, bring-your-own HTTP provider)
 - ✅ Internationalization (English & Indonesian)
 - ✅ Form validation with React Hook Form + Zod
 - ✅ Error tracking with Sentry
@@ -91,6 +92,12 @@ A modern Rails application built with React, TypeScript, and Inertia.js.
    # Required for Geospatial Analysis: OpenAI API Key
    # Add to your .env file or Rails credentials:
    export OPENAI_API_KEY=your_openai_api_key_here
+   
+   # Optional: Google Gemini API Key (used if users pick Gemini)
+   export GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
+   
+   # Optional: Default endpoint for custom HTTP providers
+   export DEFAULT_CUSTOM_AI_ENDPOINT=https://example.com/v1/chat
    
    # Optional: Set up Sentry DSN for error tracking
    # Add SENTRY_DSN to your environment variables or Rails credentials
@@ -252,25 +259,34 @@ Sentry is configured for error tracking:
 Set up your environment variables as needed:
 - Database credentials: Rails encrypted credentials
 - Sentry DSN: `SENTRY_DSN` environment variable or Rails credentials
-- **OpenAI API Key**: `OPENAI_API_KEY` environment variable (required for geospatial analysis)
+- **OpenAI API Key**: `OPENAI_API_KEY` environment variable (required for geospatial analysis unless the user supplies their own)
+- **Google Gemini API Key**: `GOOGLE_GEMINI_API_KEY` environment variable (used when users select Gemini without supplying their own key)
+- **Default Custom Endpoint**: `DEFAULT_CUSTOM_AI_ENDPOINT` (optional fallback when users choose the custom provider)
 - Other configuration: Rails encrypted credentials or environment variables
 
 ### Geospatial Analysis
 
 The application includes a geospatial AI analysis feature that allows users to:
 - Select areas on an interactive map
+- Choose which AI provider (OpenAI, Google Gemini, or a custom HTTP endpoint with their own token) powers each session
 - Choose from different analysis types (Urban Heat Island, Land Cover, Land Cover Change, Air Pollution)
 - Chat with an AI assistant about the selected area
 - View analysis history and results
 
 To use this feature:
-1. Ensure `OPENAI_API_KEY` is set in your environment
+1. Ensure `OPENAI_API_KEY` or `GOOGLE_GEMINI_API_KEY` is set, or store your own key via **Dashboard → AI Settings**
 2. Navigate to `/analysis` after logging in
 3. Select an area on the map by clicking to create a polygon
-4. Choose an analysis type
+4. Choose an analysis type and provider
 5. Start chatting with the AI about your selected area
 
 The analysis runs asynchronously using Solid Queue, and results are stored in the database.
+
+### AI Provider Settings
+
+- Users can manage their preferred provider and API key at `/settings/ai`
+- Workspace defaults (environment variables) are used when users do not store a personal key
+- Custom providers require both an endpoint URL and a personal API token; the app will POST OpenAI-compatible payloads to that endpoint
 
 ## Services
 

@@ -4,7 +4,7 @@ class DashboardsController < ApplicationController
   def index
     authorize :dashboard
     render inertia: "Dashboard/Index", props: {
-      user: current_user
+      user: current_user_payload
     }
   end
 end

@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 class AiAnalysisService
-  def initialize(analysis_session:, ai_client: nil)
+  DEFAULT_TEMPERATURE = 0.7
+
+  def initialize(analysis_session:, ai_provider_client: nil)
     @analysis_session = analysis_session
-    @ai_client = ai_client || AiClient.new
+    @ai_client = ai_provider_client || AiProviderFactory.for(user: analysis_session.user, provider: analysis_session.ai_provider)
   end
 
-  def analyze(prompt:)
+  def analyze(prompt:, temperature: DEFAULT_TEMPERATURE)
     area_summary = Geospatial::MapHelper.summarize_area(@analysis_session.area_of_interest)
     conversation_history = build_conversation_history
 
@@ -19,9 +21,9 @@ class AiAnalysisService
       { role: "user", content: user_prompt }
     ]
 
-    response = @ai_client.chat(messages: messages)
+    response = @ai_client.chat(messages: messages, temperature: temperature)
     response
-  rescue AiClient::Error => e
+  rescue AiProviders::Error => e
     Rails.logger.error("AI Analysis error: #{e.message}")
     raise
   end

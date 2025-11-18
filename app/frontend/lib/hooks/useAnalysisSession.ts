@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { AnalysisSession, AnalysisMessage, AnalysisType } from '@/types'
+import { AnalysisSession, AnalysisMessage, AnalysisType, AiProvider } from '@/types'
 
 interface CreateSessionParams {
   analysis_type: AnalysisType
   area_of_interest: GeoJSON.Geometry | GeoJSON.Feature | GeoJSON.FeatureCollection
   metadata?: Record<string, unknown>
+  ai_provider: AiProvider
 }
 
 interface CreateMessageParams {

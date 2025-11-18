@@ -15,11 +15,14 @@ class AnalysisJob < ApplicationJob
     analysis_session.analysis_messages.create!(
       role: :assistant,
       content: response,
-      payload: { analysis_type: analysis_session.analysis_type }
+      payload: {
+        analysis_type: analysis_session.analysis_type,
+        ai_provider: analysis_session.ai_provider
+      }
     )
 
     analysis_session.update(status: :completed)
-  rescue StandardError => e
+  rescue AiProviders::Error, StandardError => e
     Rails.logger.error("AnalysisJob failed: #{e.message}")
     Rails.logger.error(e.backtrace.join("\n"))
 

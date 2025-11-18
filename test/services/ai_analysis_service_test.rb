@@ -16,7 +16,7 @@ class AiAnalysisServiceTest < ActiveSupport::TestCase
         }
       }
     )
-    # Mock AiClient to avoid requiring API key in tests
+    # Mock provider client to avoid requiring API key in tests
     # Create a simple mock object that responds to the methods we need
     @mock_client = Object.new
     def @mock_client.chat(*args)
@@ -25,7 +25,7 @@ class AiAnalysisServiceTest < ActiveSupport::TestCase
   end
 
   test "should build system prompt with area summary" do
-    service = AiAnalysisService.new(analysis_session: @session, ai_client: @mock_client)
+    service = AiAnalysisService.new(analysis_session: @session, ai_provider_client: @mock_client)
     prompt = service.send(:build_system_prompt, {
       center: { lat: 0.5, lon: 0.5 },
       bounds: { min_lat: 0, max_lat: 1, min_lon: 0, max_lon: 1 }
@@ -36,7 +36,7 @@ class AiAnalysisServiceTest < ActiveSupport::TestCase
   end
 
   test "should build user prompt with context" do
-    service = AiAnalysisService.new(analysis_session: @session, ai_client: @mock_client)
+    service = AiAnalysisService.new(analysis_session: @session, ai_provider_client: @mock_client)
     prompt = service.send(:build_user_prompt, "What is this area?", {
       center: { lat: 0.5, lon: 0.5 },
       bounds: { min_lat: 0, max_lat: 1, min_lon: 0, max_lon: 1 }
@@ -56,7 +56,7 @@ class AiAnalysisServiceTest < ActiveSupport::TestCase
       content: "Hi there"
     )
 
-    service = AiAnalysisService.new(analysis_session: @session, ai_client: @mock_client)
+    service = AiAnalysisService.new(analysis_session: @session, ai_provider_client: @mock_client)
     history = service.send(:build_conversation_history)
 
     assert_equal 2, history.length
