@@ -14,13 +14,16 @@ class ApplicationController < ActionController::Base
   inertia_share do
     {
       auth: {
-        user: current_user&.as_json(only: [ :id, :name, :email, :role ])
+        user: current_user_payload
       },
       flash: {
         success: flash[:success],
         error: flash[:error],
         notice: flash[:notice],
         alert: flash[:alert]
+      },
+      ai_defaults: {
+        has_custom_endpoint: ENV["DEFAULT_CUSTOM_AI_ENDPOINT"].present?
       },
       errors: session.delete(:errors) || {},
       locale: I18n.locale,
@@ -88,5 +91,22 @@ class ApplicationController < ActionController::Base
     # Remove nested keys (like success:, error:) and return only top-level keys
     # Or return all keys recursively depending on your needs
     translations.transform_keys(&:to_sym).except(:success, :error)
+  end
+
+  private
+
+  def current_user_payload
+    return if current_user.blank?
+
+    {
+      id: current_user.id,
+      name: current_user.name,
+      email: current_user.email,
+      role: current_user.role,
+      ai_provider: current_user.ai_provider,
+      ai_metadata: current_user.ai_metadata,
+      has_ai_api_key: current_user.ai_api_key_present?,
+      requires_personal_key: current_user.requires_personal_key?
+    }
   end
 end

@@ -27,6 +27,18 @@ export default function Layout({ children }: LayoutProps) {
                 >
                   Dashboard
                 </Link>
+                <Link
+                  href="/analysis"
+                  className="text-gray-700 hover:text-blue-600 transition"
+                >
+                  Analysis
+                </Link>
+                <Link
+                  href="/settings/ai"
+                  className="text-gray-700 hover:text-blue-600 transition"
+                >
+                  AI Settings
+                </Link>
               </div>
             )}
 

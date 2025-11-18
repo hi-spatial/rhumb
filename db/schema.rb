@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_13_223832) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_18_064213) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -27,10 +27,12 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_13_223832) do
   end
 
   create_table "analysis_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "ai_provider", default: "openai", null: false
     t.string "analysis_type", null: false
     t.jsonb "area_of_interest", null: false
     t.datetime "created_at", null: false
     t.jsonb "metadata", default: {}
+    t.jsonb "provider_metadata", default: {}, null: false
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
@@ -40,6 +42,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_13_223832) do
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "ai_api_key_ciphertext"
+    t.jsonb "ai_metadata", default: {}, null: false
+    t.string "ai_provider", default: "openai", null: false
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false

@@ -1,24 +1,33 @@
 import React, { useState } from 'react'
-import { usePage } from '@inertiajs/react'
-import { PageProps } from '@/types'
+import { Link, usePage } from '@inertiajs/react'
+import { PageProps, AiProvider, AnalysisType, GeoJSON } from '@/types'
 import Layout from '@/components/layout/layout'
 import InteractiveMap from '@/components/map/InteractiveMap'
 import ChatPanel from '@/components/analysis/ChatPanel'
 import { useAnalysisSession, useAnalysisSessions } from '@/lib/hooks/useAnalysisSession'
-import { AnalysisType, GeoJSON } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 
 export default function AnalysisIndex() {
-  const { auth } = usePage<PageProps>().props
+  const { auth, ai_providers: availableProviders = [], ai_defaults } = usePage<PageProps & { ai_providers?: AiProvider[] }>().props
+  const aiProviders = (availableProviders.length ? availableProviders : [ 'openai', 'gemini', 'custom' ]) as AiProvider[]
+  const [ aiProvider, setAiProvider ] = useState<AiProvider>((auth.user?.ai_provider as AiProvider) || 'openai')
   const [selectedArea, setSelectedArea] = useState<GeoJSON.Feature | null>(null)
   const [analysisType, setAnalysisType] = useState<AnalysisType>('land_cover')
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
   const [sessionCreated, setSessionCreated] = useState(false)
 
-  const { sessions, createSession, loading: sessionsLoading } = useAnalysisSessions()
+  const { sessions, createSession } = useAnalysisSessions()
   const { session, messages, loading: sessionLoading, createMessage, error } = useAnalysisSession(currentSessionId)
+
+  const userMetadata = (auth.user?.ai_metadata as Record<string, unknown> | undefined) || {}
+  const customEndpoint = typeof userMetadata.custom_endpoint === 'string' ? userMetadata.custom_endpoint : ''
+  const hasStoredKey = Boolean(auth.user?.has_ai_api_key)
+  const hasDefaultCustomEndpoint = Boolean(ai_defaults?.has_custom_endpoint)
+  const requiresCustomConfig = aiProvider === 'custom'
+  const missingEndpoint = customEndpoint ? false : !hasDefaultCustomEndpoint
+  const customSetupIncomplete = requiresCustomConfig && (!hasStoredKey || missingEndpoint)
 
   const handleAreaSelect = (feature: GeoJSON.Feature | null) => {
     setSelectedArea(feature)
@@ -28,11 +37,17 @@ export default function AnalysisIndex() {
   }
 
   const handleCreateSession = async (feature: GeoJSON.Feature) => {
+    if (customSetupIncomplete) {
+      alert('Custom provider requires an API key and endpoint. Update your AI settings first.')
+      return
+    }
+
     try {
       const newSession = await createSession({
         analysis_type: analysisType,
         area_of_interest: feature,
-        metadata: {}
+        metadata: {},
+        ai_provider: aiProvider
       })
       setCurrentSessionId(newSession.id)
       setSessionCreated(true)
@@ -42,6 +57,11 @@ export default function AnalysisIndex() {
   }
 
   const handleSendMessage = async (content: string) => {
+    if (customSetupIncomplete) {
+      alert('Custom provider requires an API key and endpoint. Update your AI settings first.')
+      return
+    }
+
     if (!currentSessionId) {
       if (selectedArea) {
         await handleCreateSession(selectedArea)
@@ -67,7 +87,7 @@ export default function AnalysisIndex() {
           <p className="text-xl text-gray-600">Select an area on the map and analyze it with AI</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
           <Card className="p-4">
             <label className="block text-sm font-medium mb-2">Analysis Type</label>
             <Select
@@ -87,6 +107,44 @@ export default function AnalysisIndex() {
             </Select>
           </Card>
 
+          <Card className="p-4 space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-2">AI Provider</label>
+              <Select
+                value={aiProvider}
+                onValueChange={(value) => setAiProvider(value as AiProvider)}
+                disabled={sessionCreated}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {aiProviders.map((provider) => (
+                    <SelectItem key={provider} value={provider}>
+                      {provider === 'openai' && 'OpenAI'}
+                      {provider === 'gemini' && 'Google Gemini'}
+                      {provider === 'custom' && 'Custom HTTP'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-xs text-gray-600">
+              {aiProvider === 'custom' ? (
+                <>
+                  Configure your endpoint and API key in settings.
+                  <div className="mt-1">
+                    <Link href="/settings/ai" className="text-blue-600 hover:underline">
+                      Manage AI settings
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                'Uses workspace defaults unless you have saved your own key.'
+              )}
+            </div>
+          </Card>
+
           <Card className="p-4">
             <div className="text-sm text-gray-600">
               <p className="font-medium mb-1">Status:</p>
@@ -100,6 +158,16 @@ export default function AnalysisIndex() {
             </Button>
           </div>
         </div>
+
+        {customSetupIncomplete && (
+          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-900 rounded">
+            Custom provider requires both an API key and endpoint. Visit{' '}
+            <Link href="/settings/ai" className="font-semibold underline">
+              AI Settings
+            </Link>{' '}
+            to finish setup.
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -153,6 +221,9 @@ export default function AnalysisIndex() {
                       {s.status}
                     </span>
                   </div>
+                  <p className="text-xs text-gray-500 capitalize mb-2">
+                    Provider: {s.ai_provider}
+                  </p>
                   <p className="text-xs text-gray-500">
                     {new Date(s.created_at).toLocaleDateString()}
                   </p>

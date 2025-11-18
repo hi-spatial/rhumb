@@ -31,6 +31,10 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :settings do
+    resource :ai_provider, only: %i[show update], path: "ai", controller: "ai_providers"
+  end
+
   # Root route points to dashboard (redirects to login if not authenticated)
   root to: "dashboards#index"
 end

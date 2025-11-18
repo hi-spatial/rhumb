@@ -5,6 +5,8 @@ class AnalysisController < ApplicationController
 
   def index
     authorize :analysis
-    render inertia: "Analysis/Index"
+    render inertia: "Analysis/Index", props: {
+      ai_providers: User.ai_providers.keys
+    }
   end
 end
