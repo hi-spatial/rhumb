@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { GeoJSON } from '@/types'
@@ -16,6 +16,27 @@ export default function InteractiveMap({ onAreaSelect, initialArea, className }:
   const [points, setPoints] = useState<[number, number][]>([])
   const polygonLayerId = 'polygon-layer'
   const polygonSourceId = 'polygon-source'
+
+  const clearPolygonOnMap = () => {
+    if (!map.current) return
+    const source = map.current.getSource(polygonSourceId)
+    if (source) {
+      (source as maplibregl.GeoJSONSource).setData({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: {}
+      })
+    }
+    if (map.current.getLayer(polygonLayerId)) {
+      map.current.removeLayer(polygonLayerId)
+    }
+    if (map.current.getLayer(`${polygonLayerId}-outline`)) {
+      map.current.removeLayer(`${polygonLayerId}-outline`)
+    }
+    if (map.current.getSource(polygonSourceId)) {
+      map.current.removeSource(polygonSourceId)
+    }
+  }
 
   const updatePolygonOnMap = (feature: GeoJSON.Feature) => {
     if (!map.current) return
@@ -128,11 +149,34 @@ export default function InteractiveMap({ onAreaSelect, initialArea, className }:
   }, [isDrawing, onAreaSelect])
 
   useEffect(() => {
-    if (initialArea && map.current) {
+    if (!map.current) return
+
+    let frameId: number | null = null
+
+    if (initialArea) {
       updatePolygonOnMap(initialArea)
       if (initialArea.geometry.type === 'Polygon') {
         const coords = initialArea.geometry.coordinates[0]
-        setPoints(coords.slice(0, -1) as [number, number][])
+        const nextPoints = coords.slice(0, -1) as [number, number][]
+        frameId = requestAnimationFrame(() => {
+          setPoints((prev) => {
+            if (prev.length === nextPoints.length && prev.every((point, index) => point[0] === nextPoints[index][0] && point[1] === nextPoints[index][1])) {
+              return prev
+            }
+            return nextPoints
+          })
+        })
+      }
+    } else {
+      clearPolygonOnMap()
+      frameId = requestAnimationFrame(() => {
+        setPoints((prev) => (prev.length === 0 ? prev : []))
+      })
+    }
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId)
       }
     }
   }, [initialArea])
@@ -157,16 +201,7 @@ export default function InteractiveMap({ onAreaSelect, initialArea, className }:
   const clearArea = () => {
     setPoints([])
     setIsDrawing(false)
-    if (map.current) {
-      const source = map.current.getSource(polygonSourceId)
-      if (source) {
-        (source as maplibregl.GeoJSONSource).setData({
-          type: 'Feature',
-          geometry: { type: 'Polygon', coordinates: [] },
-          properties: {}
-        })
-      }
-    }
+    clearPolygonOnMap()
     if (onAreaSelect) {
       onAreaSelect(null as unknown as GeoJSON.Feature)
     }

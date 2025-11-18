@@ -51,6 +51,8 @@ export type PageProps<T = Record<string, unknown>> = {
 // User interface
 export type AiProvider = 'openai' | 'gemini' | 'custom'
 
+export * as GeoJSON from 'geojson'
+
 export interface User {
   id: string // UUID
   name: string

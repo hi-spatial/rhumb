@@ -85,11 +85,17 @@ export function useAnalysisSession(sessionId: string | null) {
   }, [sessionId, fetchSession])
 
   useEffect(() => {
-    if (sessionId) {
-      fetchSession()
-      const interval = setInterval(fetchSession, 5000) // Poll every 5 seconds
-      return () => clearInterval(interval)
+    if (!sessionId) {
+      setSession(null)
+      setMessages([])
+      setError(null)
+      setLoading(false)
+      return
     }
+
+    fetchSession()
+    const interval = setInterval(fetchSession, 5000) // Poll every 5 seconds
+    return () => clearInterval(interval)
   }, [sessionId, fetchSession])
 
   return {
