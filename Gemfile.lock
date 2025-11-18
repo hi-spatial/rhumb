@@ -147,6 +147,12 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
+    faraday (2.14.0)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.2)
+      net-http (~> 0.5)
     ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-aarch64-linux-musl)
     ffi (1.17.2-arm-linux-gnu)
@@ -223,6 +229,8 @@ GEM
     minitest (5.26.1)
     msgpack (1.8.0)
     mutex_m (0.3.0)
+    net-http (0.8.0)
+      uri (>= 0.11.1)
     net-imap (0.5.12)
       date
       net-protocol
@@ -509,6 +517,7 @@ DEPENDENCIES
   capybara
   debug
   devise (~> 4.9)
+  faraday (~> 2.0)
   htmlbeautifier (~> 1.4, >= 1.4.3)
   image_processing (~> 1.2)
   inertia_rails (~> 3.12, >= 3.12.1)

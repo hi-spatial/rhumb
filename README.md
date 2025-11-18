@@ -1,4 +1,4 @@
-# Anvil
+# Rhumb
 
 A modern Rails application built with React, TypeScript, and Inertia.js.
 
@@ -15,6 +15,8 @@ A modern Rails application built with React, TypeScript, and Inertia.js.
 - **Job Queue**: Solid Queue
 - **Cache**: Solid Cache
 - **WebSockets**: Solid Cable
+- **AI Integration**: OpenAI API for geospatial analysis
+- **HTTP Client**: Faraday for API requests
 
 ### Frontend
 - **React**: 19.2.0 with TypeScript
@@ -25,6 +27,7 @@ A modern Rails application built with React, TypeScript, and Inertia.js.
 - **UI Components**: Shadcn UI
 - **Asset Pipeline**: Vite
 - **Package Manager**: Yarn 4.11.0
+- **Maps**: MapLibre GL for interactive mapping
 
 ### Deployment
 - **Kamal**: For containerized deployment
@@ -35,6 +38,7 @@ A modern Rails application built with React, TypeScript, and Inertia.js.
 - ✅ Role-based access control (admin and user roles)
 - ✅ Admin dashboard using Avo
 - ✅ Custom user dashboard
+- ✅ **Geospatial AI Analysis** - Interactive map-based analysis with AI chat
 - ✅ Internationalization (English & Indonesian)
 - ✅ Form validation with React Hook Form + Zod
 - ✅ Error tracking with Sentry
@@ -55,7 +59,7 @@ A modern Rails application built with React, TypeScript, and Inertia.js.
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd anvil
+   cd rhumb
    ```
 
 2. Install Ruby dependencies:
@@ -83,6 +87,10 @@ A modern Rails application built with React, TypeScript, and Inertia.js.
    ```bash
    # Edit Rails credentials for database configuration
    EDITOR="code --wait" bin/rails credentials:edit
+   
+   # Required for Geospatial Analysis: OpenAI API Key
+   # Add to your .env file or Rails credentials:
+   export OPENAI_API_KEY=your_openai_api_key_here
    
    # Optional: Set up Sentry DSN for error tracking
    # Add SENTRY_DSN to your environment variables or Rails credentials
@@ -244,7 +252,25 @@ Sentry is configured for error tracking:
 Set up your environment variables as needed:
 - Database credentials: Rails encrypted credentials
 - Sentry DSN: `SENTRY_DSN` environment variable or Rails credentials
+- **OpenAI API Key**: `OPENAI_API_KEY` environment variable (required for geospatial analysis)
 - Other configuration: Rails encrypted credentials or environment variables
+
+### Geospatial Analysis
+
+The application includes a geospatial AI analysis feature that allows users to:
+- Select areas on an interactive map
+- Choose from different analysis types (Urban Heat Island, Land Cover, Land Cover Change, Air Pollution)
+- Chat with an AI assistant about the selected area
+- View analysis history and results
+
+To use this feature:
+1. Ensure `OPENAI_API_KEY` is set in your environment
+2. Navigate to `/analysis` after logging in
+3. Select an area on the map by clicking to create a polygon
+4. Choose an analysis type
+5. Start chatting with the AI about your selected area
+
+The analysis runs asynchronously using Solid Queue, and results are stored in the database.
 
 ## Services
 
@@ -450,7 +476,7 @@ bundle exec overcommit --sign
 
 This project is open source and available under the [MIT License](LICENSE).
 
-Copyright (c) 2024 Anvil
+Copyright (c) 2024 Rhumb
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

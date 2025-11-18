@@ -53,4 +53,42 @@ export interface User {
   role: 'user' | 'admin'
 }
 
-// Add more types as needed
+// Analysis types
+export type AnalysisType = 'heat_island' | 'land_cover' | 'land_cover_change' | 'air_pollution'
+export type AnalysisStatus = 'pending' | 'processing' | 'completed' | 'failed'
+export type MessageRole = 'user' | 'assistant' | 'system'
+
+export interface AnalysisSession {
+  id: string
+  analysis_type: AnalysisType
+  status: AnalysisStatus
+  area_of_interest: GeoJSON.Geometry | GeoJSON.Feature | GeoJSON.FeatureCollection
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface AnalysisMessage {
+  id: string
+  role: MessageRole
+  content: string
+  payload: Record<string, unknown>
+  created_at: string
+}
+
+// GeoJSON types (basic)
+export interface GeoJSONGeometry {
+  type: string
+  coordinates: number[] | number[][] | number[][][]
+}
+
+export interface GeoJSONFeature {
+  type: 'Feature'
+  geometry: GeoJSONGeometry
+  properties?: Record<string, unknown>
+}
+
+export interface GeoJSONFeatureCollection {
+  type: 'FeatureCollection'
+  features: GeoJSONFeature[]
+}

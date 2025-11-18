@@ -69,7 +69,9 @@ export default function Index({ user, locale }: DashboardProps) {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
-              <p className="text-gray-600">Dashboard features coming soon...</p>
+              <Link href="/analysis">
+                <Button className="w-full">Start Geospatial Analysis</Button>
+              </Link>
             </div>
           </div>
         </div>

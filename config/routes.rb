@@ -22,6 +22,14 @@ Rails.application.routes.draw do
 
   # Dashboard routes (protected)
   get "/dashboard", to: "dashboards#index", as: :dashboard
+  get "/analysis", to: "analysis#index", as: :analysis
+
+  # API routes (protected)
+  namespace :api do
+    resources :analysis_sessions, only: %i[index show create update destroy] do
+      resources :analysis_messages, only: %i[index show create]
+    end
+  end
 
   # Root route points to dashboard (redirects to login if not authenticated)
   root to: "dashboards#index"
