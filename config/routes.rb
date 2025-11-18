@@ -33,7 +33,11 @@ Rails.application.routes.draw do
 
   namespace :settings do
     resource :ai_provider, only: %i[show update], path: "ai", controller: "ai_providers"
+    resource :profile, only: %i[show update], controller: "profiles"
   end
+
+  # Chrome DevTools Protocol
+  get "/.well-known/appspecific/com.chrome.devtools.json", to: proc { [ 204, {}, [] ] }
 
   # Root route points to dashboard (redirects to login if not authenticated)
   root to: "dashboards#index"
