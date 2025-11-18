@@ -23,6 +23,11 @@ export function FlashMessages({ flash, ctaHref = '/users/sign_in' }: FlashMessag
   const [ dismissed, setDismissed ] = React.useState<Record<string, boolean>>({})
   const [ modalDismissed, setModalDismissed ] = React.useState(false)
 
+  React.useEffect(() => {
+    setDismissed({})
+    setModalDismissed(false)
+  }, [ flash ])
+
   const toastMessages = extractToasts(flash).filter((message) => !dismissed[message.key])
   const showModal = Boolean(flash.alert) && !modalDismissed
 

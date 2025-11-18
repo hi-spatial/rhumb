@@ -1,5 +1,6 @@
 class Users::SessionsController < Devise::SessionsController
   include InertiaRails::Controller
+  include NoCache
 
   def new
     if user_signed_in?
