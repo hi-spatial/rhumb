@@ -87,6 +87,27 @@ export interface AnalysisMessage {
   created_at: string
 }
 
+export interface DashboardStats {
+  total_sessions: number
+  active_sessions: number
+  completed_sessions: number
+  last_used_at?: string | null
+}
+
+export interface DashboardSessionSummary {
+  id: string
+  analysis_type: AnalysisType
+  ai_provider: AiProvider
+  status: AnalysisStatus
+  created_at: string
+}
+
+export interface AiProviderSummary {
+  provider: AiProvider
+  requires_personal_key: boolean
+  has_personal_key: boolean
+}
+
 // GeoJSON types (basic)
 export interface GeoJSONGeometry {
   type: string
