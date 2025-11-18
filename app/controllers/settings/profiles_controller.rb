@@ -15,29 +15,35 @@ module Settings
       authorize current_user, :update?
 
       attributes = profile_params.to_h.symbolize_keys
+      ai_attributes = extract_ai_attributes(attributes)
+      user_attributes = attributes.except(*ai_attribute_keys)
 
-      if password_change_requested?(attributes)
-        if attributes[:current_password].blank?
+      if password_change_requested?(user_attributes)
+        if user_attributes[:current_password].blank?
           current_user.errors.add(:current_password, "can't be blank")
           handle_update_failure
           return redirect_to(settings_profile_path)
         end
 
-        unless current_user.valid_password?(attributes[:current_password])
+        unless current_user.valid_password?(user_attributes[:current_password])
           current_user.errors.add(:current_password, "is incorrect")
           handle_update_failure
           return redirect_to(settings_profile_path)
         end
       else
-        attributes.except!(:password, :password_confirmation, :current_password)
+        user_attributes.except!(:password, :password_confirmation, :current_password)
       end
 
-      attributes.delete(:current_password)
+      user_attributes.delete(:current_password)
 
-      if current_user.update(attributes)
+      update_success = ActiveRecord::Base.transaction do
+        current_user.update(user_attributes) && ai_provider_setting.update(ai_attributes)
+      end
+
+      if update_success
         flash[:success] = "Profile updated successfully"
       else
-        handle_update_failure
+        handle_update_failure(ai_provider_setting.errors.any? ? ai_provider_setting : current_user)
       end
 
       redirect_to settings_profile_path
@@ -49,9 +55,30 @@ module Settings
       attributes[:password].present?
     end
 
-    def handle_update_failure
-      session[:errors] = current_user.errors.to_hash(true)
-      flash[:error] = current_user.errors.full_messages.to_sentence
+    def handle_update_failure(record = current_user)
+      session[:errors] = record.errors.to_hash(true)
+      flash[:error] = record.errors.full_messages.to_sentence
+    end
+
+    def ai_provider_setting
+      current_user.ai_provider_setting || current_user.build_ai_provider_setting
+    end
+
+    def ai_attribute_keys
+      @ai_attribute_keys ||= %i[
+        ai_provider
+        ai_api_key
+        openai_model
+        gemini_model
+        custom_model
+        custom_endpoint
+      ]
+    end
+
+    def extract_ai_attributes(attributes)
+      attrs = attributes.slice(*ai_attribute_keys)
+      attrs.delete(:ai_api_key) if attrs[:ai_api_key].blank?
+      attrs
     end
 
     def profile_params
@@ -69,7 +96,6 @@ module Settings
         :custom_endpoint
       )
 
-      permitted[:ai_api_key] = nil if permitted[:ai_api_key].blank?
       permitted[:current_password] = nil if permitted[:current_password].blank?
       permitted[:password] = nil if permitted[:password].blank?
       permitted[:password_confirmation] = nil if permitted[:password_confirmation].blank?

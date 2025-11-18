@@ -54,6 +54,7 @@ export default function AiSettings({ user, ai_providers: aiProviders = [] }: AiS
   })
 
   const selectedProvider = watch('ai_provider')
+  const hasStoredKey = Boolean(user.has_ai_api_key)
   const needsCustomConfig = selectedProvider === 'custom'
 
   const handleProviderChange = (value: AiProvider) => {
@@ -105,11 +106,13 @@ export default function AiSettings({ user, ai_providers: aiProviders = [] }: AiS
               <Input
                 id="ai_api_key"
                 type="password"
-                placeholder="sk-..."
+                placeholder={hasStoredKey ? '•••••••• (stored)' : 'sk-...'}
                 {...register('ai_api_key')}
               />
               <p className="text-xs text-gray-500">
-                Leave blank to keep your existing key. Custom providers require a personal key.
+                {hasStoredKey
+                  ? 'A personal key is already stored. Enter a new key to replace it or leave blank to keep it.'
+                  : 'Enter your personal key. Leave blank to use workspace defaults. Custom providers require a personal key.'}
               </p>
             </div>
 

@@ -13,4 +13,3 @@ module NoCache
     response.headers["Expires"] = "0"
   end
 end
-

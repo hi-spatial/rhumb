@@ -14,16 +14,20 @@ module Settings
     def update
       authorize current_user, :update?
 
-      if current_user.update(ai_provider_params)
+      if ai_provider_setting.update(ai_provider_params)
         flash[:success] = "AI provider settings updated"
       else
-        flash[:error] = current_user.errors.full_messages.to_sentence
+        flash[:error] = ai_provider_setting.errors.full_messages.to_sentence
       end
 
-      redirect_to settings_ai_path
+      redirect_to settings_ai_provider_path
     end
 
     private
+
+    def ai_provider_setting
+      current_user.ai_provider_setting || current_user.build_ai_provider_setting
+    end
 
     def ai_provider_params
       permitted = params.require(:user).permit(
@@ -35,7 +39,7 @@ module Settings
         :custom_endpoint
       )
 
-      permitted[:ai_api_key] = nil if permitted[:ai_api_key].blank?
+      permitted.delete(:ai_api_key) if permitted[:ai_api_key].blank?
       permitted
     end
   end

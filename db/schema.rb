@@ -10,10 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_18_064213) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_18_133040) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "ai_provider_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "ai_api_key"
+    t.jsonb "ai_metadata", default: {}, null: false
+    t.string "ai_provider", default: "openai", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["user_id"], name: "index_ai_provider_settings_on_user_id", unique: true
+  end
 
   create_table "analysis_messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "analysis_session_id", null: false
@@ -42,9 +52,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_18_064213) do
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.text "ai_api_key_ciphertext"
-    t.jsonb "ai_metadata", default: {}, null: false
-    t.string "ai_provider", default: "openai", null: false
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -58,6 +65,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_18_064213) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "ai_provider_settings", "users"
   add_foreign_key "analysis_messages", "analysis_sessions"
   add_foreign_key "analysis_sessions", "users"
 end
