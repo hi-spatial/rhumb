@@ -15,4 +15,3 @@ class CreateAnalysisSessions < ActiveRecord::Migration[8.1]
     add_index :analysis_sessions, :analysis_type
   end
 end
-

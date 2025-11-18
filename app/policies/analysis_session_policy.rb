@@ -31,4 +31,3 @@ class AnalysisSessionPolicy < ApplicationPolicy
     end
   end
 end
-

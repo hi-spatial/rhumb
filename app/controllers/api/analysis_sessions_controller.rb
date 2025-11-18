@@ -62,7 +62,7 @@ module Api
     end
 
     def analysis_session_params
-      params.require(:analysis_session).permit(:analysis_type, :area_of_interest, :metadata)
+      params.require(:analysis_session).permit(:analysis_type, area_of_interest: {}, metadata: {})
     end
 
     def serialize_session(session)
@@ -88,4 +88,3 @@ module Api
     end
   end
 end
-

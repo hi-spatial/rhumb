@@ -68,4 +68,3 @@ class AiAnalysisService
     end
   end
 end
-

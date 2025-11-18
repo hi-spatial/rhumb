@@ -23,4 +23,3 @@ class AnalysisMessagePolicy < ApplicationPolicy
     end
   end
 end
-

@@ -9,7 +9,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       "type" => "Feature",
       "geometry" => {
         "type" => "Polygon",
-        "coordinates" => [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+        "coordinates" => [ [ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ] ] ]
       }
     }
   end
@@ -100,4 +100,3 @@ class AnalysisSessionTest < ActiveSupport::TestCase
     assert_equal session2.id, recent.first.id
   end
 end
-

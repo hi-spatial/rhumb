@@ -14,4 +14,3 @@ class AnalysisMessage < ApplicationRecord
 
   scope :ordered, -> { order(created_at: :asc) }
 end
-

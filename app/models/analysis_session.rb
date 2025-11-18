@@ -34,4 +34,3 @@ class AnalysisSession < ApplicationRecord
     end
   end
 end
-

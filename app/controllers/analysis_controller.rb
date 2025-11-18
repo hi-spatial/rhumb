@@ -8,4 +8,3 @@ class AnalysisController < ApplicationController
     render inertia: "Analysis/Index"
   end
 end
-

@@ -69,4 +69,3 @@ module Geospatial
     end
   end
 end
-

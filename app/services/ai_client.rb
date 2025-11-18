@@ -45,4 +45,3 @@ class AiClient
     end
   end
 end
-

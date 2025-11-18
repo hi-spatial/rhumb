@@ -5,4 +5,3 @@ class AnalysisPolicy < ApplicationPolicy
     authenticated?
   end
 end
-

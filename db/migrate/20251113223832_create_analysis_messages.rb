@@ -13,4 +13,3 @@ class CreateAnalysisMessages < ActiveRecord::Migration[8.1]
     add_index :analysis_messages, :role
   end
 end
-
