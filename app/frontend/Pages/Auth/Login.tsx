@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { loginSchema, type LoginFormData } from '@/lib/validations'
+import { FlashMessages } from '@/components/layout/flash-messages'
 
-interface LoginProps extends PageProps {}
+type LoginProps = PageProps
 
-export default function Login({ errors: pageErrors = {}, translations }: LoginProps) {
+export default function Login({ errors: pageErrors = {}, translations, flash }: LoginProps) {
   const {
     register,
     handleSubmit,
@@ -70,8 +71,10 @@ export default function Login({ errors: pageErrors = {}, translations }: LoginPr
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <FlashMessages flash={flash} ctaHref={null} />
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">{t.login || 'Login'}</CardTitle>
           <CardDescription className="text-center">
@@ -136,7 +139,8 @@ export default function Login({ errors: pageErrors = {}, translations }: LoginPr
             </Link>
           </div>
         </CardFooter>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }
