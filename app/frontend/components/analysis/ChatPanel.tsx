@@ -11,10 +11,11 @@ interface ChatPanelProps {
   onSendMessage: (content: string) => void
   onRetryMessage?: (messageId: string) => void
   loading?: boolean
+  sessionStatus?: 'pending' | 'processing' | 'completed' | 'failed'
   className?: string
 }
 
-export default function ChatPanel({ messages, onSendMessage, onRetryMessage, loading, className }: ChatPanelProps) {
+export default function ChatPanel({ messages, onSendMessage, onRetryMessage, loading, sessionStatus, className }: ChatPanelProps) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -127,13 +128,28 @@ export default function ChatPanel({ messages, onSendMessage, onRetryMessage, loa
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
-            <p>Start a conversation about your selected area.</p>
-            <p className="text-sm mt-2">Ask questions like:</p>
-            <ul className="text-sm mt-2 space-y-1">
-              <li>"What can you tell me about this area?"</li>
-              <li>"Analyze the land cover in this region"</li>
-              <li>"What insights can you provide?"</li>
-            </ul>
+            {(loading || sessionStatus === 'pending' || sessionStatus === 'processing') ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <span className="animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1.4s' }}>●</span>
+                    <span className="animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1.4s' }}>●</span>
+                    <span className="animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1.4s' }}>●</span>
+                  </div>
+                  <span className="text-sm">Initializing analysis session...</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p>Start a conversation about your selected area.</p>
+                <p className="text-sm mt-2">Ask questions like:</p>
+                <ul className="text-sm mt-2 space-y-1">
+                  <li>"What can you tell me about this area?"</li>
+                  <li>"Analyze the land cover in this region"</li>
+                  <li>"What insights can you provide?"</li>
+                </ul>
+              </>
+            )}
           </div>
         ) : (
           messages.map((message) => {

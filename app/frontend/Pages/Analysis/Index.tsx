@@ -210,6 +210,7 @@ export default function AnalysisIndex() {
               onSendMessage={handleSendMessage}
               onRetryMessage={retryMessage}
               loading={sessionLoading}
+              sessionStatus={session?.status}
               className="h-[600px]"
             />
           </div>
