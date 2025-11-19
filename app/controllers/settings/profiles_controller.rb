@@ -6,17 +6,14 @@ module Settings
       authorize current_user, :update?
 
       render inertia: "Profile/Settings", props: {
-        user: current_user_payload,
-        ai_providers: User.ai_providers.keys
+        user: current_user_payload
       }
     end
 
     def update
       authorize current_user, :update?
 
-      attributes = profile_params.to_h.symbolize_keys
-      ai_attributes = extract_ai_attributes(attributes)
-      user_attributes = attributes.except(*ai_attribute_keys)
+      user_attributes = profile_params.to_h.symbolize_keys
 
       if password_change_requested?(user_attributes)
         if user_attributes[:current_password].blank?
@@ -36,14 +33,10 @@ module Settings
 
       user_attributes.delete(:current_password)
 
-      update_success = ActiveRecord::Base.transaction do
-        current_user.update(user_attributes) && ai_provider_setting.update(ai_attributes)
-      end
-
-      if update_success
+      if current_user.update(user_attributes)
         flash[:success] = "Profile updated successfully"
       else
-        handle_update_failure(ai_provider_setting.errors.any? ? ai_provider_setting : current_user)
+        handle_update_failure
       end
 
       redirect_to settings_profile_path
@@ -60,40 +53,13 @@ module Settings
       flash[:error] = record.errors.full_messages.to_sentence
     end
 
-    def ai_provider_setting
-      current_user.ai_provider_setting || current_user.build_ai_provider_setting
-    end
-
-    def ai_attribute_keys
-      @ai_attribute_keys ||= %i[
-        ai_provider
-        ai_api_key
-        openai_model
-        gemini_model
-        custom_model
-        custom_endpoint
-      ]
-    end
-
-    def extract_ai_attributes(attributes)
-      attrs = attributes.slice(*ai_attribute_keys)
-      attrs.delete(:ai_api_key) if attrs[:ai_api_key].blank?
-      attrs
-    end
-
     def profile_params
       permitted = params.require(:user).permit(
         :name,
         :email,
-        :ai_provider,
-        :ai_api_key,
         :current_password,
         :password,
-        :password_confirmation,
-        :openai_model,
-        :gemini_model,
-        :custom_model,
-        :custom_endpoint
+        :password_confirmation
       )
 
       permitted[:current_password] = nil if permitted[:current_password].blank?

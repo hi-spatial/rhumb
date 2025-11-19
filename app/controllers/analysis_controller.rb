@@ -9,4 +9,9 @@ class AnalysisController < ApplicationController
       ai_providers: User.ai_providers.keys
     }
   end
+
+  def history
+    authorize :analysis
+    render inertia: "Analysis/History"
+  end
 end

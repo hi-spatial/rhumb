@@ -24,6 +24,7 @@ export default function Layout({ children }: LayoutProps) {
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/analysis', label: 'Analysis' },
+    { href: '/analysis/history', label: 'History' },
     { href: '/settings/ai', label: 'AI Settings' },
   ]
 

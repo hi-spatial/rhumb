@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { Link } from '@inertiajs/react'
 import { AnalysisMessage, MessageRole } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,20 +15,86 @@ interface ChatPanelProps {
 export default function ChatPanel({ messages, onSendMessage, loading, className }: ChatPanelProps) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const [isNearBottom, setIsNearBottom] = useState(true)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
+  const previousMessagesLengthRef = useRef(messages.length)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const checkIfNearBottom = useCallback(() => {
+    if (!messagesContainerRef.current) return false
+    const container = messagesContainerRef.current
+    const threshold = 100 // pixels from bottom
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+    return distanceFromBottom < threshold
+  }, [])
 
+  const scrollToBottom = useCallback((force = false) => {
+    if (force || shouldAutoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      setIsNearBottom(true)
+    }
+  }, [shouldAutoScroll])
+
+  const handleScroll = useCallback(() => {
+    const nearBottom = checkIfNearBottom()
+    setIsNearBottom(nearBottom)
+    // If user manually scrolls to bottom, enable auto-scroll again
+    if (nearBottom) {
+      setShouldAutoScroll(true)
+    }
+  }, [checkIfNearBottom])
+
+  // Track when messages change
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    const messagesLengthChanged = messages.length !== previousMessagesLengthRef.current
+    const isNewMessage = messages.length > previousMessagesLengthRef.current
+    
+    if (messagesLengthChanged) {
+      if (isNewMessage) {
+        // New message added - scroll if user is at bottom or if it's a user message
+        const lastMessage = messages[messages.length - 1]
+        const isUserMessage = lastMessage?.role === 'user'
+        
+        if (isUserMessage || isNearBottom) {
+          setShouldAutoScroll(true)
+          setTimeout(() => scrollToBottom(true), 100)
+        } else {
+          setShouldAutoScroll(false)
+        }
+      }
+      previousMessagesLengthRef.current = messages.length
+    }
+  }, [messages, isNearBottom, scrollToBottom])
+
+  // Initial scroll to bottom when component mounts with messages
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
+        setIsNearBottom(true)
+        setShouldAutoScroll(true)
+      }, 100)
+    }
+  }, []) // Only on mount
+
+  // Attach scroll listener
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (container) {
+      container.addEventListener('scroll', handleScroll)
+      return () => container.removeEventListener('scroll', handleScroll)
+    }
+  }, [handleScroll])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() && !loading) {
       onSendMessage(input.trim())
       setInput('')
+      // Force scroll when user sends a message
+      setShouldAutoScroll(true)
+      setTimeout(() => scrollToBottom(true), 100)
     }
   }
 
@@ -46,10 +113,16 @@ export default function ChatPanel({ messages, onSendMessage, loading, className 
 
   return (
     <Card className={`flex flex-col h-full ${className || ''}`}>
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex justify-between items-center">
         <h3 className="text-lg font-semibold">Analysis Chat</h3>
+        <Link
+          href="/analysis/history"
+          className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          View History
+        </Link>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
             <p>Start a conversation about your selected area.</p>
@@ -77,10 +150,14 @@ export default function ChatPanel({ messages, onSendMessage, loading, className 
           ))
         )}
         {loading && (
-          <div className="bg-gray-200 text-gray-900 rounded-lg px-4 py-2 mr-auto max-w-[80%]">
+          <div className="bg-gray-200 text-gray-900 rounded-lg px-4 py-3 mr-auto max-w-[80%]">
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
-              <span>Analyzing...</span>
+              <div className="flex gap-1">
+                <span className="animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1.4s' }}>●</span>
+                <span className="animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1.4s' }}>●</span>
+                <span className="animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1.4s' }}>●</span>
+              </div>
+              <span className="text-sm font-medium">AI is analyzing...</span>
             </div>
           </div>
         )}

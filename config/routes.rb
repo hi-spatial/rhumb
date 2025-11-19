@@ -23,6 +23,7 @@ Rails.application.routes.draw do
   # Dashboard routes (protected)
   get "/dashboard", to: "dashboards#index", as: :dashboard
   get "/analysis", to: "analysis#index", as: :analysis
+  get "/analysis/history", to: "analysis#history", as: :analysis_history
 
   # API routes (protected)
   namespace :api do

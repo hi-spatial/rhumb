@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, usePage } from '@inertiajs/react'
 import { PageProps, AiProvider, AnalysisType, GeoJSON } from '@/types'
 import Layout from '@/components/layout/layout'
@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 
 export default function AnalysisIndex() {
-  const { auth, ai_providers: availableProviders = [], ai_defaults } = usePage<PageProps & { ai_providers?: AiProvider[] }>().props
+  const page = usePage<PageProps & { ai_providers?: AiProvider[] }>()
+  const { auth, ai_providers: availableProviders = [], ai_defaults } = page.props
   const aiProviders = (availableProviders.length ? availableProviders : [ 'openai', 'gemini', 'custom' ]) as AiProvider[]
   const [ aiProvider, setAiProvider ] = useState<AiProvider>((auth.user?.ai_provider as AiProvider) || 'openai')
   const [selectedArea, setSelectedArea] = useState<GeoJSON.Feature | null>(null)
@@ -20,6 +21,22 @@ export default function AnalysisIndex() {
 
   const { sessions, createSession } = useAnalysisSessions()
   const { session, messages, loading: sessionLoading, createMessage, error } = useAnalysisSession(currentSessionId)
+
+  // Check for session query parameter on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const sessionId = urlParams.get('session')
+    if (sessionId && sessions.length > 0) {
+      const foundSession = sessions.find(s => s.id === sessionId)
+      if (foundSession) {
+        setCurrentSessionId(sessionId)
+        setSelectedArea(foundSession.area_of_interest as GeoJSON.Feature)
+        setSessionCreated(true)
+        // Clean up URL
+        window.history.replaceState({}, '', '/analysis')
+      }
+    }
+  }, [sessions])
 
   const userMetadata = (auth.user?.ai_metadata as Record<string, unknown> | undefined) || {}
   const customEndpoint = typeof userMetadata.custom_endpoint === 'string' ? userMetadata.custom_endpoint : ''
