@@ -25,6 +25,13 @@ module Api
       authorize @analysis_message
 
       if @analysis_message.save
+        # Broadcast user message immediately
+        broadcast_message(@analysis_session, @analysis_message)
+
+        # Update session status to processing
+        @analysis_session.update(status: :processing)
+        broadcast_session_update(@analysis_session)
+
         # Enqueue background job for AI analysis
         AnalysisJob.perform_later(@analysis_session.id, @analysis_message.content)
 
@@ -61,6 +68,36 @@ module Api
         payload: message.payload,
         created_at: message.created_at
       }
+    end
+
+    def broadcast_message(analysis_session, message)
+      ActionCable.server.broadcast(
+        "analysis_session:#{analysis_session.id}",
+        {
+          type: "message",
+          message: {
+            id: message.id,
+            role: message.role,
+            content: message.content,
+            payload: message.payload,
+            created_at: message.created_at.iso8601
+          }
+        }
+      )
+    end
+
+    def broadcast_session_update(analysis_session)
+      ActionCable.server.broadcast(
+        "analysis_session:#{analysis_session.id}",
+        {
+          type: "session_update",
+          session: {
+            id: analysis_session.id,
+            status: analysis_session.status,
+            updated_at: analysis_session.updated_at.iso8601
+          }
+        }
+      )
     end
   end
 end

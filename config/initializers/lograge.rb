@@ -8,13 +8,16 @@ Rails.application.configure do
 
   # Add custom data to logs
   config.lograge.custom_options = lambda do |event|
+    params = event.payload[:params]
+    filtered_params = params&.except("controller", "action", "format", "utf8", "authenticity_token") || {}
+
     {
       time: event.time,
       host: event.payload[:host],
       remote_ip: event.payload[:remote_ip],
       ip: event.payload[:ip],
       x_forwarded_for: event.payload[:x_forwarded_for],
-      params: event.payload[:params].except("controller", "action", "format", "utf8", "authenticity_token"),
+      params: filtered_params,
       user_id: event.payload[:user_id],
       request_id: event.payload[:request_id]
     }

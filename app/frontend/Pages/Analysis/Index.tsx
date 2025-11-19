@@ -20,7 +20,7 @@ export default function AnalysisIndex() {
   const [sessionCreated, setSessionCreated] = useState(false)
 
   const { sessions, createSession } = useAnalysisSessions()
-  const { session, messages, loading: sessionLoading, createMessage, error } = useAnalysisSession(currentSessionId)
+  const { session, messages, loading: sessionLoading, createMessage, retryMessage, error } = useAnalysisSession(currentSessionId)
 
   // Check for session query parameter on mount
   useEffect(() => {
@@ -207,6 +207,7 @@ export default function AnalysisIndex() {
             <ChatPanel
               messages={messages}
               onSendMessage={handleSendMessage}
+              onRetryMessage={retryMessage}
               loading={sessionLoading}
               className="h-[600px]"
             />

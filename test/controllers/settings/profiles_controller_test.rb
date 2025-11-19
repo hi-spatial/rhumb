@@ -38,23 +38,8 @@ module Settings
       assert_equal "updated@example.com", @user.email
     end
 
-    test "clears blank api key while keeping provider" do
-      sign_in @user
-
-      patch settings_profile_path, params: {
-        user: {
-          ai_provider: "openai",
-          ai_api_key: "",
-          custom_endpoint: "https://example.com/api"
-        }
-      }
-
-      assert_redirected_to settings_profile_path
-      @user.reload
-      assert_equal "openai", @user.ai_provider
-      assert_nil @user.ai_api_key
-      assert_equal "https://example.com/api", @user.custom_endpoint
-    end
+    # Note: AI settings are now handled by Settings::AiProvidersController
+    # This test has been removed as AI settings are no longer part of profile settings
 
 
     test "persists validation errors when update fails" do

@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Link } from '@inertiajs/react'
-import { AnalysisMessage, MessageRole } from '@/types'
+import { MessageRole } from '@/types'
+import { MessageWithState } from '@/lib/hooks/useAnalysisSession'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 
 interface ChatPanelProps {
-  messages: AnalysisMessage[]
+  messages: MessageWithState[]
   onSendMessage: (content: string) => void
+  onRetryMessage?: (messageId: string) => void
   loading?: boolean
   className?: string
 }
 
-export default function ChatPanel({ messages, onSendMessage, loading, className }: ChatPanelProps) {
+export default function ChatPanel({ messages, onSendMessage, onRetryMessage, loading, className }: ChatPanelProps) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -134,32 +136,52 @@ export default function ChatPanel({ messages, onSendMessage, loading, className 
             </ul>
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${getMessageClassName(message.role)}`}
-            >
-              <div className="text-sm font-medium mb-1 capitalize">{message.role}</div>
-              <div className="whitespace-pre-wrap">{message.content}</div>
-              {message.payload && Object.keys(message.payload).length > 0 && (
-                <div className="mt-2 text-xs opacity-75">
-                  {JSON.stringify(message.payload, null, 2)}
+          messages.map((message) => {
+            const isFailed = message.isFailed
+            const isLoading = message.isLoading && !message.content
+            
+            return (
+              <div
+                key={message.id}
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${getMessageClassName(message.role)} ${
+                  isFailed ? 'border-2 border-red-300' : ''
+                }`}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <div className="text-sm font-medium capitalize">{message.role}</div>
+                  {isFailed && onRetryMessage && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRetryMessage(message.id)}
+                      className="text-xs h-6 px-2"
+                    >
+                      Retry
+                    </Button>
+                  )}
                 </div>
-              )}
-            </div>
-          ))
-        )}
-        {loading && (
-          <div className="bg-gray-200 text-gray-900 rounded-lg px-4 py-3 mr-auto max-w-[80%]">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                <span className="animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1.4s' }}>●</span>
-                <span className="animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1.4s' }}>●</span>
-                <span className="animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1.4s' }}>●</span>
+                {isLoading ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <div className="flex gap-1">
+                      <span className="animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1.4s' }}>●</span>
+                      <span className="animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1.4s' }}>●</span>
+                      <span className="animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1.4s' }}>●</span>
+                    </div>
+                    <span className="text-sm">AI is analyzing...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="whitespace-pre-wrap">{message.content || (isFailed ? message.error : '')}</div>
+                    {message.payload && Object.keys(message.payload).length > 0 && (
+                      <div className="mt-2 text-xs opacity-75">
+                        {JSON.stringify(message.payload, null, 2)}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-              <span className="text-sm font-medium">AI is analyzing...</span>
-            </div>
-          </div>
+            )
+          })
         )}
         <div ref={messagesEndRef} />
       </div>

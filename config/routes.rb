@@ -40,6 +40,9 @@ Rails.application.routes.draw do
   # Chrome DevTools Protocol
   get "/.well-known/appspecific/com.chrome.devtools.json", to: proc { [ 204, {}, [] ] }
 
+  # Action Cable mount point
+  mount ActionCable.server => "/cable"
+
   # Root route points to dashboard (redirects to login if not authenticated)
   root to: "dashboards#index"
 end

@@ -4,7 +4,9 @@ require "minitest/mock"
 class AiProviderFactoryTest < ActiveSupport::TestCase
   def setup
     @user = users(:one)
-    @user.update!(ai_metadata: {})
+    # Ensure ai_provider_setting exists and has empty metadata
+    setting = @user.ai_provider_setting || @user.create_ai_provider_setting!(ai_provider: "openai", ai_metadata: {})
+    setting.update!(ai_metadata: {}) if setting.ai_metadata.present?
   end
 
   test "builds openai provider with env fallback" do
@@ -20,7 +22,10 @@ class AiProviderFactoryTest < ActiveSupport::TestCase
   end
 
   test "builds gemini provider with user key override" do
-    @user.update!(ai_provider: :gemini, ai_metadata: { "gemini_model" => "gemini-1.5-pro" })
+    # Update ai_provider_setting since ai_provider is now stored there
+    setting = @user.ai_provider_setting || @user.create_ai_provider_setting!(ai_provider: "gemini", ai_metadata: {})
+    setting.update!(ai_provider: :gemini, ai_metadata: { "gemini_model" => "gemini-1.5-pro" })
+    @user.reload
 
     @user.stub(:ai_api_key, "user-key") do
       provider = AiProviderFactory.for(user: @user)
@@ -32,12 +37,13 @@ class AiProviderFactoryTest < ActiveSupport::TestCase
   end
 
   test "raises error when custom provider missing configuration" do
-    @user.update_columns(ai_provider: "custom", ai_metadata: {})
-
+    # Update the ai_provider_setting directly since ai_provider is now stored there
+    setting = @user.ai_provider_setting || @user.create_ai_provider_setting!(ai_provider: "custom", ai_metadata: {})
+    setting.update_columns(ai_provider: "custom", ai_api_key: nil, ai_metadata: {})
+    @user.reload
+    
     assert_raises(AiProviders::Error) do
-      @user.stub(:ai_api_key, nil) do
-        AiProviderFactory.for(user: @user)
-      end
+      AiProviderFactory.for(user: @user)
     end
   end
 end
