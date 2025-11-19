@@ -4,10 +4,11 @@ class AiProviderSetting < ApplicationRecord
   enum :ai_provider, {
     openai: "openai",
     gemini: "gemini",
+    perplexity: "perplexity",
     custom: "custom"
   }, validate: true
 
-  store_accessor :ai_metadata, :openai_model, :gemini_model, :custom_model, :custom_endpoint
+  store_accessor :ai_metadata, :openai_model, :gemini_model, :perplexity_model, :custom_model, :custom_endpoint
 
   validates :custom_endpoint, presence: true, if: :custom_endpoint_required?
   validate :api_key_present_when_required
@@ -46,6 +47,8 @@ class AiProviderSetting < ApplicationRecord
       ENV["OPENAI_API_KEY"]
     when "gemini"
       ENV["GOOGLE_GEMINI_API_KEY"]
+    when "perplexity"
+      ENV["PERPLEXITY_API_KEY"]
     end
   end
 end

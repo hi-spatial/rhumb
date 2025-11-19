@@ -7,6 +7,7 @@ class AnalysisSession < ApplicationRecord
   enum :ai_provider, {
     openai: "openai",
     gemini: "gemini",
+    perplexity: "perplexity",
     custom: "custom"
   }, validate: true
 

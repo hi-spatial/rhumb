@@ -140,6 +140,7 @@ export default function AnalysisIndex() {
                     <SelectItem key={provider} value={provider}>
                       {provider === 'openai' && 'OpenAI'}
                       {provider === 'gemini' && 'Google Gemini'}
+                      {provider === 'perplexity' && 'Perplexity'}
                       {provider === 'custom' && 'Custom HTTP'}
                     </SelectItem>
                   ))}

@@ -49,7 +49,7 @@ export type PageProps<T = Record<string, unknown>> = {
 } & T
 
 // User interface
-export type AiProvider = 'openai' | 'gemini' | 'custom'
+export type AiProvider = 'openai' | 'gemini' | 'perplexity' | 'custom'
 
 export * as GeoJSON from 'geojson'
 

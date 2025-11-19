@@ -8,6 +8,8 @@ class AiProviderFactory
       AiProviders::OpenAi
     when "gemini"
       AiProviders::Gemini
+    when "perplexity"
+      AiProviders::Perplexity
     when "custom"
       AiProviders::CustomHttp
     else
@@ -33,6 +35,13 @@ class AiProviderFactory
         api_key: user.ai_api_key.presence || ENV["GOOGLE_GEMINI_API_KEY"],
         options: {
           model: metadata["gemini_model"]
+        }
+      }
+    when "perplexity"
+      {
+        api_key: user.ai_api_key.presence || ENV["PERPLEXITY_API_KEY"],
+        options: {
+          model: metadata["perplexity_model"]
         }
       }
     when "custom"

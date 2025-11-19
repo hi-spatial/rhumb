@@ -20,6 +20,7 @@ class User < ApplicationRecord
            :ai_metadata, :ai_metadata=,
            :openai_model, :openai_model=,
            :gemini_model, :gemini_model=,
+           :perplexity_model, :perplexity_model=,
            :custom_model, :custom_model=,
            :custom_endpoint, :custom_endpoint=,
            :requires_personal_key?, :ai_api_key_present?,

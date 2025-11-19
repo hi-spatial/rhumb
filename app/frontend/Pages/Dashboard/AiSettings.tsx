@@ -19,6 +19,7 @@ type FormValues = {
   ai_api_key: string
   openai_model?: string
   gemini_model?: string
+  perplexity_model?: string
   custom_model?: string
   custom_endpoint?: string
 }
@@ -26,6 +27,7 @@ type FormValues = {
 const providerLabels: Record<AiProvider, string> = {
   openai: 'OpenAI',
   gemini: 'Google Gemini',
+  perplexity: 'Perplexity',
   custom: 'Custom HTTP',
 }
 
@@ -48,6 +50,7 @@ export default function AiSettings({ user, ai_providers: aiProviders = [] }: AiS
       ai_api_key: '',
       openai_model: metadataValue('openai_model'),
       gemini_model: metadataValue('gemini_model'),
+      perplexity_model: metadataValue('perplexity_model'),
       custom_model: metadataValue('custom_model'),
       custom_endpoint: metadataValue('custom_endpoint'),
     },
@@ -131,6 +134,14 @@ export default function AiSettings({ user, ai_providers: aiProviders = [] }: AiS
                   id="gemini_model"
                   placeholder="e.g. gemini-1.5-pro"
                   {...register('gemini_model')}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="perplexity_model">Perplexity model override</Label>
+                <Input
+                  id="perplexity_model"
+                  placeholder="e.g. sonar-pro"
+                  {...register('perplexity_model')}
                 />
               </div>
               <div className="space-y-2">

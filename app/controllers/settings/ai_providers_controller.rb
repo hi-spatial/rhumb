@@ -35,6 +35,7 @@ module Settings
         :ai_api_key,
         :openai_model,
         :gemini_model,
+        :perplexity_model,
         :custom_model,
         :custom_endpoint
       )

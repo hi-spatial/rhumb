@@ -36,12 +36,38 @@ class AiProviderFactoryTest < ActiveSupport::TestCase
     end
   end
 
+  test "builds perplexity provider with env fallback" do
+    previous_key = ENV["PERPLEXITY_API_KEY"]
+    ENV["PERPLEXITY_API_KEY"] = "env-perplexity-token"
+
+    provider = AiProviderFactory.for(user: @user, provider: :perplexity)
+
+    assert_instance_of AiProviders::Perplexity, provider
+    assert_equal "env-perplexity-token", provider.instance_variable_get(:@api_key)
+  ensure
+    ENV["PERPLEXITY_API_KEY"] = previous_key
+  end
+
+  test "builds perplexity provider with user key override" do
+    setting = @user.ai_provider_setting || @user.create_ai_provider_setting!(ai_provider: "perplexity", ai_metadata: {})
+    setting.update!(ai_provider: :perplexity, ai_metadata: { "perplexity_model" => "sonar-pro" })
+    @user.reload
+
+    @user.stub(:ai_api_key, "user-perplexity-key") do
+      provider = AiProviderFactory.for(user: @user)
+
+      assert_instance_of AiProviders::Perplexity, provider
+      assert_equal "user-perplexity-key", provider.instance_variable_get(:@api_key)
+      assert_equal "sonar-pro", provider.instance_variable_get(:@options)[:model]
+    end
+  end
+
   test "raises error when custom provider missing configuration" do
     # Update the ai_provider_setting directly since ai_provider is now stored there
     setting = @user.ai_provider_setting || @user.create_ai_provider_setting!(ai_provider: "custom", ai_metadata: {})
     setting.update_columns(ai_provider: "custom", ai_api_key: nil, ai_metadata: {})
     @user.reload
-    
+
     assert_raises(AiProviders::Error) do
       AiProviderFactory.for(user: @user)
     end
