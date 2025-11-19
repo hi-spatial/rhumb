@@ -50,8 +50,9 @@ export default function Layout({ children }: LayoutProps) {
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16 gap-6">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              Rhumb
+            <Link href="/" className="flex flex-col">
+              <span className="text-2xl font-bold text-blue-600">Rhumb</span>
+              <span className="text-xs text-gray-600">Geospatial Analyzer by HI Spatial</span>
             </Link>
 
             {auth.user && (
@@ -136,9 +137,17 @@ export default function Layout({ children }: LayoutProps) {
 
       <main className="container mx-auto px-4 py-8 grow">{children}</main>
 
-      <footer className="bg-gray-800 text-white py-8 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Rhumb by HI Spatial</p>
+      <footer className="bg-gray-800 text-white mt-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col items-center md:items-start">
+              <h3 className="text-lg font-semibold mb-1">Rhumb</h3>
+              <p className="text-sm text-gray-400">Geospatial Analyzer by HI Spatial</p>
+            </div>
+            <div className="text-sm text-gray-400 text-center md:text-right">
+              <p>&copy; {new Date().getFullYear()} HI Spatial. All rights reserved.</p>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
