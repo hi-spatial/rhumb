@@ -50,6 +50,9 @@ gem "devise", "~> 4.9"
 # authorization
 gem "pundit", "~> 2.3"
 
+# pagination 
+gem 'pagy', '~> 8.0'
+
 # admin panel
 gem "avo", "~> 3.0"
 

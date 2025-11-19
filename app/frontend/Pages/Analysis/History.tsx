@@ -1,18 +1,23 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from '@inertiajs/react'
-import { usePage } from '@inertiajs/react'
-import { PageProps, AnalysisSession, AnalysisMessage, GeoJSON } from '@/types'
+import { AnalysisMessage } from '@/types'
 import Layout from '@/components/layout/layout'
 import { useAnalysisSessions } from '@/lib/hooks/useAnalysisSession'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 export default function AnalysisHistory() {
-  const { auth } = usePage<PageProps>().props
-  const { sessions, loading, error } = useAnalysisSessions()
+  const [currentPage, setCurrentPage] = useState(1)
+  const perPage = 5
+  const { sessions, loading, error, pagination } = useAnalysisSessions(currentPage, perPage)
   const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set())
   const [sessionMessages, setSessionMessages] = useState<Record<string, AnalysisMessage[]>>({})
   const [loadingMessages, setLoadingMessages] = useState<Set<string>>(new Set())
+
+  // Reset expanded sessions when page changes
+  useEffect(() => {
+    setExpandedSessions(new Set())
+  }, [currentPage])
 
   const toggleSession = async (sessionId: string) => {
     if (expandedSessions.has(sessionId)) {
@@ -116,8 +121,9 @@ export default function AnalysisHistory() {
             </Link>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {sessions.map((session) => {
+          <>
+            <div className="space-y-4">
+              {sessions.map((session) => {
               const isExpanded = expandedSessions.has(session.id)
               const messages = sessionMessages[session.id] || []
               const isLoadingMessages = loadingMessages.has(session.id)
@@ -212,7 +218,61 @@ export default function AnalysisHistory() {
                 </Card>
               )
             })}
-          </div>
+            </div>
+            
+            {pagination && pagination.total_pages > 1 && (
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing {(currentPage - 1) * perPage + 1} to {Math.min(currentPage * perPage, pagination.total_count)} of {pagination.total_count} sessions
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => pagination.prev && setCurrentPage(pagination.prev)}
+                    disabled={!pagination.prev || loading}
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
+                      let pageNum: number
+                      if (pagination.total_pages <= 5) {
+                        pageNum = i + 1
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1
+                      } else if (currentPage >= pagination.total_pages - 2) {
+                        pageNum = pagination.total_pages - 4 + i
+                      } else {
+                        pageNum = currentPage - 2 + i
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          disabled={loading}
+                          className="min-w-[2.5rem]"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => pagination.next && setCurrentPage(pagination.next)}
+                    disabled={!pagination.next || loading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </Layout>

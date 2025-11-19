@@ -6,9 +6,25 @@ module Api
     before_action :set_analysis_session, only: %i[show update destroy]
 
     def index
-      @analysis_sessions = policy_scope(AnalysisSession).recent
+      sessions_scope = policy_scope(AnalysisSession).recent
+      
+      # Use Pagy for pagination
+      # Allow per_page via params[:items] or params[:per_page], default to 10
+      items = params[:items]&.to_i || params[:per_page]&.to_i || 10
+      items = [items, 100].min # Cap at 100 per page
+      
+      @pagy, @analysis_sessions = pagy(sessions_scope, items: items)
+      
       render json: {
-        analysis_sessions: @analysis_sessions.map { |session| serialize_session(session) }
+        analysis_sessions: @analysis_sessions.map { |session| serialize_session(session) },
+        pagination: {
+          page: @pagy.page,
+          per_page: @pagy.items,
+          total_count: @pagy.count,
+          total_pages: @pagy.pages,
+          prev: @pagy.prev,
+          next: @pagy.next
+        }
       }
     end
 

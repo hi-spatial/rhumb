@@ -2,6 +2,7 @@
 class ApplicationController < ActionController::Base
   include InertiaRails::Controller
   include Pundit::Authorization
+  include Pagy::Backend
 
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :set_sentry_context

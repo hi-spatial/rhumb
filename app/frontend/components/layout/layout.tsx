@@ -28,7 +28,14 @@ export default function Layout({ children }: LayoutProps) {
     { href: '/settings/ai', label: 'AI Settings' },
   ]
 
-  const isActive = (href: string) => currentUrl.startsWith(href)
+  const isActive = (href: string) => {
+    // Exact match or starts with href followed by / or end of string
+    // This prevents /analysis from matching /analysis/history
+    if (href === '/analysis') {
+      return currentUrl === '/analysis' || currentUrl === '/analysis/'
+    }
+    return currentUrl.startsWith(href)
+  }
 
   const initials =
     auth.user?.name

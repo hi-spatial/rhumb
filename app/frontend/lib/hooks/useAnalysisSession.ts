@@ -389,16 +389,28 @@ export function useAnalysisSession(sessionId: string | null) {
   }
 }
 
-export function useAnalysisSessions() {
+export function useAnalysisSessions(page = 1, perPage = 10) {
   const [sessions, setSessions] = useState<AnalysisSession[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState<{
+    page: number
+    per_page: number
+    total_count: number
+    total_pages: number
+    prev: number | null
+    next: number | null
+  } | null>(null)
 
-  const fetchSessions = useCallback(async () => {
+  const fetchSessions = useCallback(async (pageNum = page, perPageNum = perPage) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch('/api/analysis_sessions', {
+      const params = new URLSearchParams({
+        page: pageNum.toString(),
+        items: perPageNum.toString() // Use 'items' parameter for Pagy compatibility
+      })
+      const response = await fetch(`/api/analysis_sessions?${params}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || ''
@@ -412,12 +424,13 @@ export function useAnalysisSessions() {
 
       const data = await response.json()
       setSessions(data.analysis_sessions || [])
+      setPagination(data.pagination || null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [page, perPage])
 
   const createSession = useCallback(async (params: CreateSessionParams) => {
     setLoading(true)
@@ -452,13 +465,14 @@ export function useAnalysisSessions() {
   }, [])
 
   useEffect(() => {
-    fetchSessions()
-  }, [fetchSessions])
+    fetchSessions(page, perPage)
+  }, [fetchSessions, page, perPage])
 
   return {
     sessions,
     loading,
     error,
+    pagination,
     createSession,
     refresh: fetchSessions
   }
