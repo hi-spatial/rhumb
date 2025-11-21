@@ -48,9 +48,7 @@ export default function AnalysisIndex() {
 
   const handleAreaSelect = (feature: GeoJSON.Feature | null) => {
     setSelectedArea(feature)
-    if (feature && !sessionCreated) {
-      handleCreateSession(feature)
-    }
+    // Don't automatically create session - wait for user to send a message
   }
 
   const handleCreateSession = async (feature: GeoJSON.Feature) => {
@@ -79,14 +77,18 @@ export default function AnalysisIndex() {
       return
     }
 
-    if (!currentSessionId) {
-      if (selectedArea) {
-        await handleCreateSession(selectedArea)
-      } else {
-        alert('Please select an area on the map first')
-        return
-      }
+    // Check if we have an area selected
+    if (!selectedArea) {
+      alert('Please draw an area on the map first')
+      return
     }
+
+    // Create session if it doesn't exist
+    if (!currentSessionId) {
+      await handleCreateSession(selectedArea)
+    }
+    
+    // Send the message
     await createMessage({ content })
   }
 
