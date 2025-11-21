@@ -41,7 +41,7 @@ export default function InteractiveMap({
     const mapInstance = new maplibregl.Map({
       container: mapContainer.current,
       style: 'https://tiles.openfreemap.org/styles/bright',
-      center: initialCenter || [-91.874, 42.76],
+      center: initialCenter || [110.175, -7.316],
       zoom: initialZoom ?? 12
     })
     map.current = mapInstance
@@ -129,6 +129,16 @@ export default function InteractiveMap({
     } as any)
 
     mapInstance.addControl(geocoderControl, 'top-right')
+    mapInstance.addControl(
+      new maplibregl.GeolocateControl({
+          positionOptions: {
+              enableHighAccuracy: true
+          },
+          trackUserLocation: true,
+          showUserLocation: false
+      }),
+      "bottom-right"
+  );
 
     const terraDraw = drawControl.getTerraDrawInstance()
     terraDrawRef.current = terraDraw
