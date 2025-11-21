@@ -25,6 +25,7 @@ const providerLabels: Record<AiProvider, string> = {
   openai: 'OpenAI',
   gemini: 'Google Gemini',
   custom: 'Custom HTTP',
+  perplexity: 'Perplexity',
 }
 
 const statusVariant: Record<AnalysisStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {

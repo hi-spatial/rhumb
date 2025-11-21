@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require 'net/http'
-require 'json'
+require "net/http"
+require "json"
 
 class GeocodingService
   class GeocodingError < StandardError; end
   class RateLimitError < GeocodingError; end
   class ServiceUnavailableError < GeocodingError; end
 
-  NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org'
+  NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org"
   DEFAULT_TIMEOUT = 10
   DEFAULT_LIMIT = 5
 
@@ -22,17 +22,17 @@ class GeocodingService
   # @param country_codes [Array<String>] Optional country codes to limit search
   # @return [Array<Hash>] Array of location results
   def search(query, limit: DEFAULT_LIMIT, country_codes: nil)
-    raise ArgumentError, 'Query cannot be blank' if query.blank?
-    raise ArgumentError, 'Limit must be positive' if limit <= 0
+    raise ArgumentError, "Query cannot be blank" if query.blank?
+    raise ArgumentError, "Limit must be positive" if limit <= 0
 
     params = build_search_params(query, limit, country_codes)
-    response = make_request('/search', params)
-    
+    response = make_request("/search", params)
+
     parse_search_results(response)
   rescue Net::TimeoutError, Net::OpenTimeout
-    raise ServiceUnavailableError, 'Geocoding service timeout'
+    raise ServiceUnavailableError, "Geocoding service timeout"
   rescue JSON::ParserError
-    raise GeocodingError, 'Invalid response from geocoding service'
+    raise GeocodingError, "Invalid response from geocoding service"
   end
 
   # Reverse geocode coordinates to get location information
@@ -40,25 +40,25 @@ class GeocodingService
   # @param lng [Float] Longitude
   # @return [Hash, nil] Location information or nil if not found
   def reverse_geocode(lat, lng)
-    raise ArgumentError, 'Invalid coordinates' unless valid_coordinates?(lat, lng)
+    raise ArgumentError, "Invalid coordinates" unless valid_coordinates?(lat, lng)
 
     params = {
       lat: lat,
       lon: lng,
-      format: 'json',
+      format: "json",
       addressdetails: 1,
       zoom: 18
     }
 
-    response = make_request('/reverse', params)
-    
-    if response.is_a?(Hash) && response['display_name']
+    response = make_request("/reverse", params)
+
+    if response.is_a?(Hash) && response["display_name"]
       format_reverse_result(response)
     end
   rescue Net::TimeoutError, Net::OpenTimeout
-    raise ServiceUnavailableError, 'Geocoding service timeout'
+    raise ServiceUnavailableError, "Geocoding service timeout"
   rescue JSON::ParserError
-    raise GeocodingError, 'Invalid response from geocoding service'
+    raise GeocodingError, "Invalid response from geocoding service"
   end
 
   # Get detailed information about a place by OSM ID
@@ -66,25 +66,25 @@ class GeocodingService
   # @param osm_id [Integer] OSM ID
   # @return [Hash, nil] Place details or nil if not found
   def lookup(osm_type, osm_id)
-    raise ArgumentError, 'Invalid OSM type' unless %w[N W R].include?(osm_type)
-    raise ArgumentError, 'Invalid OSM ID' unless osm_id.is_a?(Integer) && osm_id > 0
+    raise ArgumentError, "Invalid OSM type" unless %w[N W R].include?(osm_type)
+    raise ArgumentError, "Invalid OSM ID" unless osm_id.is_a?(Integer) && osm_id > 0
 
     params = {
       osm_ids: "#{osm_type}#{osm_id}",
-      format: 'json',
+      format: "json",
       addressdetails: 1,
       extratags: 1
     }
 
-    response = make_request('/lookup', params)
-    
+    response = make_request("/lookup", params)
+
     if response.is_a?(Array) && response.any?
       format_lookup_result(response.first)
     end
   rescue Net::TimeoutError, Net::OpenTimeout
-    raise ServiceUnavailableError, 'Geocoding service timeout'
+    raise ServiceUnavailableError, "Geocoding service timeout"
   rescue JSON::ParserError
-    raise GeocodingError, 'Invalid response from geocoding service'
+    raise GeocodingError, "Invalid response from geocoding service"
   end
 
   private
@@ -92,15 +92,15 @@ class GeocodingService
   def build_search_params(query, limit, country_codes)
     params = {
       q: query,
-      format: 'json',
-      limit: [limit, 50].min, # Cap at 50 to prevent abuse
+      format: "json",
+      limit: [ limit, 50 ].min, # Cap at 50 to prevent abuse
       addressdetails: 1,
       extratags: 1,
       namedetails: 1
     }
 
     if country_codes.present?
-      params[:countrycodes] = Array(country_codes).join(',')
+      params[:countrycodes] = Array(country_codes).join(",")
     end
 
     params
@@ -116,7 +116,7 @@ class GeocodingService
     http.open_timeout = @timeout
 
     request = Net::HTTP::Get.new(uri)
-    request['User-Agent'] = build_user_agent
+    request["User-Agent"] = build_user_agent
 
     response = http.request(request)
 
@@ -124,9 +124,9 @@ class GeocodingService
     when 200
       JSON.parse(response.body)
     when 429
-      raise RateLimitError, 'Rate limit exceeded'
+      raise RateLimitError, "Rate limit exceeded"
     when 500..599
-      raise ServiceUnavailableError, 'Geocoding service unavailable'
+      raise ServiceUnavailableError, "Geocoding service unavailable"
     else
       raise GeocodingError, "HTTP #{response.code}: #{response.message}"
     end
@@ -147,38 +147,38 @@ class GeocodingService
     return nil unless result.is_a?(Hash)
 
     {
-      place_id: result['place_id']&.to_i,
-      osm_type: result['osm_type'],
-      osm_id: result['osm_id']&.to_i,
-      display_name: result['display_name'],
+      place_id: result["place_id"]&.to_i,
+      osm_type: result["osm_type"],
+      osm_id: result["osm_id"]&.to_i,
+      display_name: result["display_name"],
       name: extract_name(result),
-      type: result['type'],
-      class: result['class'],
-      importance: result['importance']&.to_f,
+      type: result["type"],
+      class: result["class"],
+      importance: result["importance"]&.to_f,
       coordinates: {
-        lat: result['lat']&.to_f,
-        lng: result['lon']&.to_f
+        lat: result["lat"]&.to_f,
+        lng: result["lon"]&.to_f
       },
-      bounding_box: parse_bounding_box(result['boundingbox']),
-      address: result['address'] || {},
-      extra_tags: result['extratags'] || {}
+      bounding_box: parse_bounding_box(result["boundingbox"]),
+      address: result["address"] || {},
+      extra_tags: result["extratags"] || {}
     }
   end
 
   def format_reverse_result(result)
     {
-      place_id: result['place_id']&.to_i,
-      osm_type: result['osm_type'],
-      osm_id: result['osm_id']&.to_i,
-      display_name: result['display_name'],
+      place_id: result["place_id"]&.to_i,
+      osm_type: result["osm_type"],
+      osm_id: result["osm_id"]&.to_i,
+      display_name: result["display_name"],
       name: extract_name(result),
-      type: result['type'],
-      class: result['class'],
+      type: result["type"],
+      class: result["class"],
       coordinates: {
-        lat: result['lat']&.to_f,
-        lng: result['lon']&.to_f
+        lat: result["lat"]&.to_f,
+        lng: result["lon"]&.to_f
       },
-      address: result['address'] || {}
+      address: result["address"] || {}
     }
   end
 
@@ -187,11 +187,11 @@ class GeocodingService
   end
 
   def extract_name(result)
-    return result['name'] if result['name'].present?
-    return result['namedetails']['name'] if result.dig('namedetails', 'name').present?
-    
+    return result["name"] if result["name"].present?
+    return result["namedetails"]["name"] if result.dig("namedetails", "name").present?
+
     # Fallback to first part of display_name
-    result['display_name']&.split(',')&.first&.strip
+    result["display_name"]&.split(",")&.first&.strip
   end
 
   def parse_bounding_box(bbox)
@@ -204,8 +204,8 @@ class GeocodingService
       north: north,
       west: west,
       east: east,
-      southwest: [south, west],
-      northeast: [north, east]
+      southwest: [ south, west ],
+      northeast: [ north, east ]
     }
   end
 

@@ -39,12 +39,12 @@ class AnalysisSession < ApplicationRecord
   def geometry_bounds
     return nil unless area_of_interest.present? && area_of_interest.is_a?(Hash)
 
-    geometry = area_of_interest['geometry']
+    geometry = area_of_interest["geometry"]
     return nil unless geometry.present?
 
-    case geometry['type']
-    when 'Point'
-      coordinates = geometry['coordinates']
+    case geometry["type"]
+    when "Point"
+      coordinates = geometry["coordinates"]
       return nil unless coordinates.is_a?(Array) && coordinates.length >= 2
 
       lng, lat = coordinates[0], coordinates[1]
@@ -53,16 +53,16 @@ class AnalysisSession < ApplicationRecord
         north: lat,
         west: lng,
         east: lng,
-        southwest: [lat, lng],
-        northeast: [lat, lng]
+        southwest: [ lat, lng ],
+        northeast: [ lat, lng ]
       }
-    when 'LineString'
-      coordinates = geometry['coordinates']
+    when "LineString"
+      coordinates = geometry["coordinates"]
       return nil unless coordinates.is_a?(Array) && coordinates.any?
 
       calculate_bounds_from_coordinates(coordinates)
-    when 'Polygon'
-      coordinates = geometry['coordinates']
+    when "Polygon"
+      coordinates = geometry["coordinates"]
       return nil unless coordinates.is_a?(Array) && coordinates.any?
 
       # Use the exterior ring (first array)
@@ -83,39 +83,39 @@ class AnalysisSession < ApplicationRecord
 
     if bounds[:south] == bounds[:north] && bounds[:west] == bounds[:east]
       # Single point
-      [bounds[:west], bounds[:south]]
+      [ bounds[:west], bounds[:south] ]
     else
       # Calculate center of bounding box
       center_lng = (bounds[:west] + bounds[:east]) / 2.0
       center_lat = (bounds[:south] + bounds[:north]) / 2.0
-      [center_lng, center_lat]
+      [ center_lng, center_lat ]
     end
   end
 
   # Check if the geometry is a single point
   # @return [Boolean]
   def point_geometry?
-    area_of_interest.dig('geometry', 'type') == 'Point'
+    area_of_interest.dig("geometry", "type") == "Point"
   end
 
   # Get the geometry type
   # @return [String, nil]
   def geometry_type
-    area_of_interest.dig('geometry', 'type')
+    area_of_interest.dig("geometry", "type")
   end
 
   # Calculate the approximate area of the geometry in square kilometers
   # @return [Float, nil] Area in square kilometers, nil for points and lines
   def geometry_area_km2
-    return nil unless area_of_interest.present? && geometry_type == 'Polygon'
+    return nil unless area_of_interest.present? && geometry_type == "Polygon"
 
-    coordinates = area_of_interest.dig('geometry', 'coordinates', 0)
+    coordinates = area_of_interest.dig("geometry", "coordinates", 0)
     return nil unless coordinates.is_a?(Array) && coordinates.length >= 4
 
     # Use shoelace formula for polygon area calculation
     # This is an approximation that works reasonably well for small areas
     area_deg2 = shoelace_area(coordinates)
-    
+
     # Convert from square degrees to square kilometers (very rough approximation)
     # 1 degree ≈ 111 km at equator
     area_deg2 * (111.0 ** 2)
@@ -125,17 +125,17 @@ class AnalysisSession < ApplicationRecord
   # @return [String]
   def geometry_description
     case geometry_type
-    when 'Point'
-      'Point location'
-    when 'LineString'
+    when "Point"
+      "Point location"
+    when "LineString"
       bounds = geometry_bounds
       if bounds
         distance = approximate_distance_km(bounds[:southwest], bounds[:northeast])
         "Line (≈#{distance.round(1)} km)"
       else
-        'Line'
+        "Line"
       end
-    when 'Polygon'
+    when "Polygon"
       area = geometry_area_km2
       if area && area > 0
         if area < 1
@@ -144,10 +144,10 @@ class AnalysisSession < ApplicationRecord
           "Polygon (≈#{area.round(1)} km²)"
         end
       else
-        'Polygon'
+        "Polygon"
       end
     else
-      geometry_type || 'Unknown geometry'
+      geometry_type || "Unknown geometry"
     end
   end
 
@@ -187,8 +187,8 @@ class AnalysisSession < ApplicationRecord
       north: lats.max,
       west: lngs.min,
       east: lngs.max,
-      southwest: [lats.min, lngs.min],
-      northeast: [lats.max, lngs.max]
+      southwest: [ lats.min, lngs.min ],
+      northeast: [ lats.max, lngs.max ]
     }
   end
 
@@ -223,16 +223,16 @@ class AnalysisSession < ApplicationRecord
 
     # Haversine formula
     r = 6371 # Earth's radius in kilometers
-    
+
     dlat = Math::PI * (lat2 - lat1) / 180
     dlng = Math::PI * (lng2 - lng1) / 180
-    
+
     a = Math.sin(dlat / 2) * Math.sin(dlat / 2) +
         Math.cos(Math::PI * lat1 / 180) * Math.cos(Math::PI * lat2 / 180) *
         Math.sin(dlng / 2) * Math.sin(dlng / 2)
-    
+
     c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    
+
     r * c
   end
 end

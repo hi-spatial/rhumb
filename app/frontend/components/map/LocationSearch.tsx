@@ -21,7 +21,7 @@ interface LocationSearchProps {
 export default function LocationSearch({ 
   onLocationSelect, 
   className = '',
-  placeholder = 'Search for a location...' 
+  placeholder = 'Search for a place or address...'
 }: LocationSearchProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<NominatimResult[]>([])
@@ -215,6 +215,9 @@ export default function LocationSearch({
                   </div>
                   <div className="text-xs text-gray-500 truncate">
                     {result.display_name}
+                  </div>
+                  <div className="text-[10px] text-gray-400 mt-1">
+                    Powered by OpenStreetMap Nominatim
                   </div>
                 </div>
               </div>

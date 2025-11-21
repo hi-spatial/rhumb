@@ -94,8 +94,8 @@ class GeocodingServiceTest < ActiveSupport::TestCase
   end
 
   test "should build correct search parameters" do
-    params = @service.send(:build_search_params, "London", 5, ["GB"])
-    
+    params = @service.send(:build_search_params, "London", 5, [ "GB" ])
+
     expected_params = {
       q: "London",
       format: "json",
@@ -111,34 +111,34 @@ class GeocodingServiceTest < ActiveSupport::TestCase
 
   test "should build search parameters without country codes" do
     params = @service.send(:build_search_params, "London", 5, nil)
-    
+
     refute params.key?(:countrycodes)
   end
 
   test "should cap limit at 50" do
     params = @service.send(:build_search_params, "London", 100, nil)
-    
+
     assert_equal 50, params[:limit]
   end
 
   test "should build user agent string" do
     user_agent = @service.send(:build_user_agent)
-    
+
     assert_includes user_agent, Rails.application.class.module_parent_name
     assert_includes user_agent, Rails.env
   end
 
   test "should parse bounding box correctly" do
-    bbox = ["51.28", "51.69", "-0.51", "0.33"]
+    bbox = [ "51.28", "51.69", "-0.51", "0.33" ]
     result = @service.send(:parse_bounding_box, bbox)
-    
+
     expected = {
       south: 51.28,
       north: 51.69,
       west: -0.51,
       east: 0.33,
-      southwest: [51.28, -0.51],
-      northeast: [51.69, 0.33]
+      southwest: [ 51.28, -0.51 ],
+      northeast: [ 51.69, 0.33 ]
     }
 
     assert_equal expected, result
@@ -147,7 +147,7 @@ class GeocodingServiceTest < ActiveSupport::TestCase
   test "should return nil for invalid bounding box" do
     assert_nil @service.send(:parse_bounding_box, nil)
     assert_nil @service.send(:parse_bounding_box, [])
-    assert_nil @service.send(:parse_bounding_box, ["51.28", "51.69"])
+    assert_nil @service.send(:parse_bounding_box, [ "51.28", "51.69" ])
     assert_nil @service.send(:parse_bounding_box, "invalid")
   end
 
@@ -157,7 +157,7 @@ class GeocodingServiceTest < ActiveSupport::TestCase
     assert_equal "London", @service.send(:extract_name, result_with_name)
 
     # Test with namedetails
-    result_with_namedetails = { 
+    result_with_namedetails = {
       "namedetails" => { "name" => "London" },
       "display_name" => "London, UK"
     }
@@ -183,7 +183,7 @@ class GeocodingServiceTest < ActiveSupport::TestCase
       "importance" => "0.9",
       "lat" => "51.5073219",
       "lon" => "-0.1276474",
-      "boundingbox" => ["51.28", "51.69", "-0.51", "0.33"],
+      "boundingbox" => [ "51.28", "51.69", "-0.51", "0.33" ],
       "address" => { "city" => "London", "country" => "United Kingdom" },
       "extratags" => { "population" => "8982000" }
     }
@@ -235,12 +235,12 @@ class GeocodingServiceTest < ActiveSupport::TestCase
 
   test "should handle timeout errors" do
     # Mock Net::HTTP to raise timeout
-    Net::HTTP.stub(:new, -> (*args) { 
+    Net::HTTP.stub(:new, ->(*args) {
       mock_http = Minitest::Mock.new
-      mock_http.expect(:use_ssl=, nil, [true])
-      mock_http.expect(:read_timeout=, nil, [Integer])
-      mock_http.expect(:open_timeout=, nil, [Integer])
-      mock_http.expect(:request, -> { raise Net::TimeoutError }, [Object])
+      mock_http.expect(:use_ssl=, nil, [ true ])
+      mock_http.expect(:read_timeout=, nil, [ Integer ])
+      mock_http.expect(:open_timeout=, nil, [ Integer ])
+      mock_http.expect(:request, -> { raise Net::TimeoutError }, [ Object ])
       mock_http
     }) do
       assert_raises(GeocodingService::ServiceUnavailableError, "Geocoding service timeout") do

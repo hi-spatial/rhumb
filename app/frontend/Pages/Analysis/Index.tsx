@@ -48,7 +48,6 @@ export default function AnalysisIndex() {
 
   const handleAreaSelect = (feature: GeoJSON.Feature | null) => {
     setSelectedArea(feature)
-    // Don't automatically create session - wait for user to send a message
   }
 
   const handleCreateSession = async (feature: GeoJSON.Feature) => {
@@ -77,19 +76,38 @@ export default function AnalysisIndex() {
       return
     }
 
-    // Check if we have an area selected
-    if (!selectedArea) {
-      alert('Please draw an area on the map first')
+    // Require an existing analysis session before sending messages
+    if (!currentSessionId) {
+      alert('Please click "Run analysis" first to create an analysis session.')
       return
     }
 
-    // Create session if it doesn't exist
-    if (!currentSessionId) {
-      await handleCreateSession(selectedArea)
-    }
-    
     // Send the message
     await createMessage({ content })
+  }
+
+  const handleRunAnalysis = async () => {
+    if (customSetupIncomplete) {
+      alert('Custom provider requires an API key and endpoint. Update your AI settings first.')
+      return
+    }
+
+    if (!selectedArea) {
+      alert('Please draw an area on the map first.')
+      return
+    }
+
+    if (currentSessionId || sessionCreated) {
+      // Session already exists for this analysis
+      return
+    }
+
+    try {
+      await handleCreateSession(selectedArea)
+    } catch (err) {
+      console.error('Failed to run analysis:', err)
+      alert('Failed to create analysis session. Please try again.')
+    }
   }
 
   const handleNewAnalysis = () => {
@@ -172,9 +190,15 @@ export default function AnalysisIndex() {
             </div>
           </Card>
 
-          <div className="flex items-end">
+          <div className="flex items-end gap-2">
             <Button onClick={handleNewAnalysis} variant="outline">
               New Analysis
+            </Button>
+            <Button
+              onClick={handleRunAnalysis}
+              disabled={!selectedArea || sessionCreated || customSetupIncomplete}
+            >
+              Run analysis
             </Button>
           </div>
         </div>

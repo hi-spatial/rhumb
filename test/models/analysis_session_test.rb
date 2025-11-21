@@ -121,15 +121,15 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @valid_geojson
     )
-    
+
     bounds = session.geometry_bounds
     assert_not_nil bounds
     assert_equal 0.0, bounds[:south]
     assert_equal 1.0, bounds[:north]
     assert_equal 0.0, bounds[:west]
     assert_equal 1.0, bounds[:east]
-    assert_equal [0.0, 0.0], bounds[:southwest]
-    assert_equal [1.0, 1.0], bounds[:northeast]
+    assert_equal [ 0.0, 0.0 ], bounds[:southwest]
+    assert_equal [ 1.0, 1.0 ], bounds[:northeast]
   end
 
   test "should calculate bounds for point geometry" do
@@ -138,15 +138,15 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @point_geojson
     )
-    
+
     bounds = session.geometry_bounds
     assert_not_nil bounds
     assert_equal 51.5074, bounds[:south]
     assert_equal 51.5074, bounds[:north]
     assert_equal(-0.1276, bounds[:west])
     assert_equal(-0.1276, bounds[:east])
-    assert_equal [51.5074, -0.1276], bounds[:southwest]
-    assert_equal [51.5074, -0.1276], bounds[:northeast]
+    assert_equal [ 51.5074, -0.1276 ], bounds[:southwest]
+    assert_equal [ 51.5074, -0.1276 ], bounds[:northeast]
   end
 
   test "should calculate bounds for line geometry" do
@@ -155,7 +155,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @line_geojson
     )
-    
+
     bounds = session.geometry_bounds
     assert_not_nil bounds
     assert_equal 51.5074, bounds[:south]
@@ -176,7 +176,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
         }
       }
     )
-    
+
     assert_nil session.geometry_bounds
   end
 
@@ -186,7 +186,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: { "type" => "Feature" }
     )
-    
+
     assert_nil session.geometry_bounds
   end
 
@@ -197,10 +197,10 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @valid_geojson
     )
-    
+
     center = session.geometry_center
     assert_not_nil center
-    assert_equal [0.5, 0.5], center
+    assert_equal [ 0.5, 0.5 ], center
   end
 
   test "should calculate center for point geometry" do
@@ -209,10 +209,10 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @point_geojson
     )
-    
+
     center = session.geometry_center
     assert_not_nil center
-    assert_equal [-0.1276, 51.5074], center
+    assert_equal [ -0.1276, 51.5074 ], center
   end
 
   test "should return nil center for invalid geometry" do
@@ -221,7 +221,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: { "type" => "Feature" }
     )
-    
+
     assert_nil session.geometry_center
   end
 
@@ -232,7 +232,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @point_geojson
     )
-    
+
     assert session.point_geometry?
     assert_equal "Point", session.geometry_type
   end
@@ -243,7 +243,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @valid_geojson
     )
-    
+
     assert_not session.point_geometry?
     assert_equal "Polygon", session.geometry_type
   end
@@ -254,7 +254,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @line_geojson
     )
-    
+
     assert_not session.point_geometry?
     assert_equal "LineString", session.geometry_type
   end
@@ -266,7 +266,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @valid_geojson
     )
-    
+
     area = session.geometry_area_km2
     assert_not_nil area
     assert area > 0
@@ -280,7 +280,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @point_geojson
     )
-    
+
     assert_nil session.geometry_area_km2
   end
 
@@ -290,7 +290,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @line_geojson
     )
-    
+
     assert_nil session.geometry_area_km2
   end
 
@@ -301,7 +301,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @point_geojson
     )
-    
+
     assert_equal "Point location", session.geometry_description
   end
 
@@ -311,7 +311,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @line_geojson
     )
-    
+
     description = session.geometry_description
     assert_includes description, "Line"
     assert_includes description, "km"
@@ -323,7 +323,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: @valid_geojson
     )
-    
+
     description = session.geometry_description
     assert_includes description, "Polygon"
     assert_includes description, "km²"
@@ -337,13 +337,13 @@ class AnalysisSessionTest < ActiveSupport::TestCase
         "coordinates" => [ [ [ 0, 0 ], [ 0.001, 0 ], [ 0.001, 0.001 ], [ 0, 0.001 ], [ 0, 0 ] ] ]
       }
     }
-    
+
     session = AnalysisSession.create!(
       user: @user,
       analysis_type: :land_cover,
       area_of_interest: small_polygon
     )
-    
+
     description = session.geometry_description
     assert_includes description, "Polygon"
     assert_includes description, "m²"
@@ -355,7 +355,7 @@ class AnalysisSessionTest < ActiveSupport::TestCase
       analysis_type: :land_cover,
       area_of_interest: { "type" => "Feature" }
     )
-    
+
     assert_equal "Unknown geometry", session.geometry_description
   end
 end
