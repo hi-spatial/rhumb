@@ -127,6 +127,12 @@ export default function InteractiveMap({
         terraDraw.addFeatures([initialArea as any])
       }
     } catch (err) {
+      // When TerraDraw hasn't finished enabling yet, calling clear/addFeatures
+      // can throw "Terra Draw is not enabled". Ignore that specific case since
+      // it will succeed once TerraDraw is ready, and we don't want noisy logs.
+      if (err instanceof Error && err.message.includes('Terra Draw is not enabled')) {
+        return
+      }
       console.error('Error syncing initialArea to TerraDraw:', err)
     }
   }, [initialArea])
