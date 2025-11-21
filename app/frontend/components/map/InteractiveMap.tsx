@@ -47,7 +47,10 @@ export default function InteractiveMap({
     map.current = mapInstance
 
     // Navigation controls
-    mapInstance.addControl(new maplibregl.NavigationControl({}), 'top-right')
+    mapInstance.addControl(new maplibregl.NavigationControl({
+      visualizePitch: false,
+      showCompass: false
+    }), 'bottom-right')
 
     // TerraDraw control, same config as TerraDrawMap.tsx
     const drawControl = new MaplibreTerradrawControl({
@@ -63,8 +66,8 @@ export default function InteractiveMap({
         'sector',
         'select',
         'delete-selection',
-        'delete',
-        'download'
+        // 'delete',
+        // 'download'
       ],
       open: true
     })
