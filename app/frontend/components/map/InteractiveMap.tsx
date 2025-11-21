@@ -29,6 +29,50 @@ export default function InteractiveMap({
   const onAreaSelectRef = useRef<typeof onAreaSelect | undefined>(undefined)
   const hasRequestedGeolocationRef = useRef(false)
 
+  // Fit the map view to a given GeoJSON feature
+  const fitToGeometry = (feature: GeoJSON.Feature) => {
+    if (!map.current || !feature?.geometry) return
+
+    try {
+      if (feature.geometry.type === 'Point') {
+        const [lng, lat] = feature.geometry.coordinates as [number, number]
+        map.current.flyTo({
+          center: [lng, lat],
+          zoom: 14,
+          duration: 1000
+        })
+        return
+      }
+
+      // Handle Polygon and LineString by computing bounds from coordinates
+      let coords: [number, number][] = []
+
+      if (feature.geometry.type === 'Polygon') {
+        coords = feature.geometry.coordinates[0] as [number, number][]
+      } else if (feature.geometry.type === 'LineString') {
+        coords = feature.geometry.coordinates as [number, number][]
+      }
+
+      if (coords.length === 0) return
+
+      const lngs = coords.map(([lng]) => lng)
+      const lats = coords.map(([, lat]) => lat)
+
+      const bounds: maplibregl.LngLatBoundsLike = [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)]
+      ]
+
+      map.current.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 16,
+        duration: 1000
+      })
+    } catch (error) {
+      console.error('Error fitting map to geometry:', error)
+    }
+  }
+
   // Keep latest callback in a ref so the effect can be [] like TerraDrawMap
   useEffect(() => {
     onAreaSelectRef.current = onAreaSelect
@@ -143,10 +187,11 @@ export default function InteractiveMap({
     const terraDraw = drawControl.getTerraDrawInstance()
     terraDrawRef.current = terraDraw
 
-    // Add initial area once if provided
+    // Add initial area once if provided and fit the view to it
     if (initialArea) {
       try {
         terraDraw.addFeatures([initialArea as any])
+        fitToGeometry(initialArea)
       } catch (err) {
         console.error('Error adding initial area to TerraDraw:', err)
       }
@@ -197,6 +242,7 @@ export default function InteractiveMap({
       terraDraw.clear()
       if (initialArea) {
         terraDraw.addFeatures([initialArea as any])
+        fitToGeometry(initialArea)
       }
     } catch (err) {
       // When TerraDraw hasn't finished enabling yet, calling clear/addFeatures
