@@ -1,10 +1,12 @@
-import { useEffect, useRef, useCallback } from 'react'
+/* eslint-disable @typescript-eslint/no-var-requires */
+import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import { MaplibreTerradrawControl } from '@watergis/maplibre-gl-terradraw'
+import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '@watergis/maplibre-gl-terradraw/dist/maplibre-gl-terradraw.css'
+import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css'
 import { GeoJSON } from '@/types'
-import LocationSearch from './LocationSearch'
 
 interface InteractiveMapProps {
   onAreaSelect?: (geojson: GeoJSON.Feature) => void
@@ -25,6 +27,7 @@ export default function InteractiveMap({
   const map = useRef<maplibregl.Map | null>(null)
   const terraDrawRef = useRef<any>(null)
   const onAreaSelectRef = useRef<typeof onAreaSelect | undefined>(undefined)
+  const hasRequestedGeolocationRef = useRef(false)
 
   // Keep latest callback in a ref so the effect can be [] like TerraDrawMap
   useEffect(() => {
@@ -67,6 +70,62 @@ export default function InteractiveMap({
     })
 
     mapInstance.addControl(drawControl, 'top-left')
+
+    // Geocoder powered by Nominatim (similar to the example you shared)
+    const geocoderApi = {
+      forwardGeocode: async (config: { query: string }) => {
+        const features: any[] = []
+
+        try {
+          const request =
+            'https://nominatim.openstreetmap.org/search?' +
+            new URLSearchParams({
+              q: config.query,
+              format: 'geojson',
+              polygon_geojson: '1',
+              addressdetails: '1'
+            }).toString()
+
+          const response = await fetch(request)
+          const geojson = await response.json()
+
+          for (const feature of geojson.features) {
+            if (!feature.bbox) continue
+
+            const center = [
+              feature.bbox[0] + (feature.bbox[2] - feature.bbox[0]) / 2,
+              feature.bbox[1] + (feature.bbox[3] - feature.bbox[1]) / 2
+            ] as [number, number]
+
+            features.push({
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: center
+              },
+              place_name: feature.properties.display_name,
+              properties: feature.properties,
+              text: feature.properties.display_name,
+              place_type: ['place'],
+              center
+            })
+          }
+        } catch (e) {
+          console.error('Failed to forwardGeocode with error:', e)
+        }
+
+        return { features }
+      }
+    }
+
+    const geocoderControl = new (MaplibreGeocoder as any)(geocoderApi, {
+      maplibregl,
+      showResultsWhileTyping: true,
+      showResultMarkers: true,
+      placeholder: 'Search for a location...'
+    } as any)
+
+    mapInstance.addControl(geocoderControl, 'top-right')
 
     const terraDraw = drawControl.getTerraDrawInstance()
     terraDrawRef.current = terraDraw
@@ -137,43 +196,39 @@ export default function InteractiveMap({
     }
   }, [initialArea])
 
-  // Location search → move/fly the map only
-  const handleLocationSelect = useCallback(
-    (location: {
-      lat: number
-      lng: number
-      bounds?: [[number, number], [number, number]]
-      name: string
-    }) => {
-      if (!map.current) return
+  // Center map on user's location when there is no initial area
+  useEffect(() => {
+    if (!map.current) return
+    if (initialArea) return
+    if (hasRequestedGeolocationRef.current) return
 
-      if (location.bounds) {
-        const [[south, west], [north, east]] = location.bounds
-        map.current.fitBounds([west, south, east, north], {
-          padding: 50,
-          maxZoom: 15
-        })
-      } else {
+    if (!('geolocation' in navigator)) {
+      hasRequestedGeolocationRef.current = true
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (!map.current) return
+
+        const { latitude, longitude } = position.coords
         map.current.flyTo({
-          center: [location.lng, location.lat],
+          center: [longitude, latitude],
           zoom: 12,
           duration: 1000
         })
+
+        hasRequestedGeolocationRef.current = true
+      },
+      () => {
+        hasRequestedGeolocationRef.current = true
       }
-    },
-    []
-  )
+    )
+  }, [initialArea])
 
   return (
     <div className={`relative ${className || ''}`}>
       <div ref={mapContainer} className="w-full h-full" />
-
-      {/* Location search powered by OpenStreetMap Nominatim */}
-      <LocationSearch
-        onLocationSelect={handleLocationSelect}
-        className="absolute top-4 right-4 z-10 w-80"
-        placeholder="Search for a location..."
-      />
     </div>
   )
 }
